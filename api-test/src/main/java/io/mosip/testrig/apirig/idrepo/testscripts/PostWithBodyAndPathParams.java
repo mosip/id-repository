@@ -28,13 +28,25 @@ import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
-// Generic POST script for endpoints with both a path param and a JSON body (e.g. createDraftV2)
+/**
+ * Generic TestNG script for {@code POST} endpoints that take both path parameters and a JSON body,
+ * for example CreateDraftV2 ({@code POST /idrepository/v1/identity/draft/v2/create/{registrationId}}).
+ * <p>
+ * The suite parameter {@code pathParams} lists the rendered input fields to move into the URL; the
+ * remaining fields form the body. Templates render every value as a string, so
+ * {@code "generateUin": "true"} and {@code "generateUin": "false"} are turned back into JSON booleans
+ * before sending.
+ */
 public class PostWithBodyAndPathParams extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(PostWithBodyAndPathParams.class);
+	/** Name of the case currently running; becomes the TestNG method name in reports. */
 	protected String testCaseName = "";
+	/** Suite parameter {@code pathParams}: input fields used as URL path parameters. */
 	String pathParams = null;
+	/** Response of the last call. */
 	public Response response = null;
 
+	/** Sets the script logger to {@code ALL} in debug mode, {@code ERROR} otherwise. */
 	@BeforeClass
 	public static void setLogLevel() {
 		if (IdRepoConfigManager.IsDebugEnabled())
@@ -43,13 +55,21 @@ public class PostWithBodyAndPathParams extends IdRepoUtil implements ITest {
 			logger.setLevel(Level.ERROR);
 	}
 
-	/** get current testcaseName */
+	/**
+	 * @return the current test case name (TestNG {@link ITest} contract)
+	 */
 	@Override
 	public String getTestName() {
 		return testCaseName;
 	}
 
-	/** Data provider class provides test case list */
+	/**
+	 * Supplies the YAML cases named by the suite parameter {@code ymlFile} and reads
+	 * {@code pathParams}.
+	 *
+	 * @param context TestNG context holding the {@code <test>} parameters
+	 * @return one {@link TestCaseDTO} per YAML entry
+	 */
 	@DataProvider(name = "testcaselist")
 	public Object[] getTestCaseList(ITestContext context) {
 		String ymlFile = context.getCurrentXmlTest().getLocalParameters().get("ymlFile");
@@ -58,6 +78,19 @@ public class PostWithBodyAndPathParams extends IdRepoUtil implements ITest {
 		return getYmlTestData(ymlFile);
 	}
 
+	/**
+	 * Runs one POST case.
+	 * <p>
+	 * Skips when {@link IdRepoUtil#isTestCaseValidForExecution} rejects the case or the environment
+	 * failed its health check (no VID check). Renders the input, resolves registration-id
+	 * placeholders, restores the {@code generateUin} boolean, POSTs and validates the response
+	 * against the YAML output template.
+	 *
+	 * @param testCaseDTO the YAML case
+	 * @throws AuthenticationTestException on token generation failure
+	 * @throws AdminTestException          when output validation fails
+	 * @throws SecurityXSSException        when the XSS header check is enabled and fails
+	 */
 	@Test(dataProvider = "testcaselist")
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
 		testCaseName = testCaseDTO.getTestCaseName();
@@ -85,7 +118,12 @@ public class PostWithBodyAndPathParams extends IdRepoUtil implements ITest {
 			throw new AdminTestException("Failed at output validation");
 	}
 
-	/** Sets current test name to result */
+	/**
+	 * Stores the case name as the {@code TestCaseName} result attribute, which the report uses as the
+	 * row label.
+	 *
+	 * @param result result of the method that just ran
+	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
 		result.setAttribute("TestCaseName", testCaseName);

@@ -1,5 +1,6 @@
 package io.mosip.testrig.apirig.idrepo.testscripts;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.testng.internal.BaseTestMethod;
+import org.testng.internal.TestResult;
 
 import io.mosip.testrig.apirig.dto.OutputValidationDto;
 import io.mosip.testrig.apirig.dto.TestCaseDTO;
@@ -32,12 +35,24 @@ import io.mosip.testrig.apirig.utils.ReportUtil;
 import io.mosip.testrig.apirig.utils.SecurityXSSException;
 import io.restassured.response.Response;
 
+/**
+ * Generic TestNG script for {@code DELETE} endpoints whose inputs are path or query parameters,
+ * for example the discard-draft API used by {@code DeleteDraft.yml}.
+ * <p>
+ * The YAML input is rendered through its HBS template, and the rendered fields fill the
+ * {@code {name}} tokens of the endpoint. Registration-id placeholders are resolved by
+ * {@link IdRepoUtil#inputStringKeyWordHandeler}.
+ */
 public class DeleteWithParam extends IdRepoUtil implements ITest {
 	private static final Logger logger = Logger.getLogger(DeleteWithParam.class);
+	/** Name of the case currently running; becomes the TestNG method name in reports. */
 	protected String testCaseName = "";
+	/** Response of the last call. */
 	public Response response = null;
+	/** True when the suite {@code <test>} declares a {@code sendEsignetToken} parameter. */
 	public boolean sendEsignetToken = false;
 
+	/** Sets the script logger to {@code ALL} in debug mode, {@code ERROR} otherwise. */
 	@BeforeClass
 	public static void setLogLevel() {
 		if (IdRepoConfigManager.IsDebugEnabled())
@@ -47,7 +62,7 @@ public class DeleteWithParam extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * get current testcaseName
+	 * @return the current test case name (TestNG {@link ITest} contract)
 	 */
 	@Override
 	public String getTestName() {
@@ -55,9 +70,11 @@ public class DeleteWithParam extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Data provider class provides test case list
-	 * 
-	 * @return object of data provider
+	 * Supplies the YAML cases named by the suite parameter {@code ymlFile} and reads the
+	 * {@code sendEsignetToken} flag.
+	 *
+	 * @param context TestNG context holding the {@code <test>} parameters
+	 * @return one {@link TestCaseDTO} per YAML entry
 	 */
 	@DataProvider(name = "testcaselist")
 	public Object[] getTestCaseList(ITestContext context) {
@@ -68,13 +85,19 @@ public class DeleteWithParam extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * Test method for OTP Generation execution
-	 * 
-	 * @param objTestParameters
-	 * @param testScenario
-	 * @param testcaseName
-	 * @throws AuthenticationTestException
-	 * @throws AdminTestException
+	 * Runs one DELETE case.
+	 * <p>
+	 * Skips when {@link IdRepoUtil#isTestCaseValidForExecution} rejects the case, when the
+	 * environment failed its health check, or when a VID case runs where the actuator does not list
+	 * VID as a supported id type. With YAML {@code templateFields}, the call runs once per
+	 * configured language, using the language-specific input and output. Otherwise it runs once,
+	 * with registration-id placeholders resolved. Each response is validated against the YAML
+	 * output template.
+	 *
+	 * @param testCaseDTO the YAML case
+	 * @throws AuthenticationTestException on token generation failure
+	 * @throws AdminTestException          when output validation fails
+	 * @throws SecurityXSSException        when the XSS header check is enabled and fails
 	 */
 	@Test(dataProvider = "testcaselist")
 	public void test(TestCaseDTO testCaseDTO) throws AuthenticationTestException, AdminTestException, SecurityXSSException {
@@ -127,12 +150,25 @@ public class DeleteWithParam extends IdRepoUtil implements ITest {
 	}
 
 	/**
-	 * The method ser current test name to result
-	 * 
-	 * @param result
+	 * Renames the TestNG method on {@code result} to the YAML case name, so each case gets its own
+	 * report row instead of {@code test}. Uses reflection on TestNG internals
+	 * ({@code TestResult.m_method}, {@code BaseTestMethod.m_methodName}); any failure is written to
+	 * the report and ignored.
+	 *
+	 * @param result result of the method that just ran
 	 */
 	@AfterMethod(alwaysRun = true)
 	public void setResultTestName(ITestResult result) {
-		result.setAttribute("TestCaseName", testCaseName);
+		try {
+			Field method = TestResult.class.getDeclaredField("m_method");
+			method.setAccessible(true);
+			method.set(result, result.getMethod().clone());
+			BaseTestMethod baseTestMethod = (BaseTestMethod) result.getMethod();
+			Field f = baseTestMethod.getClass().getSuperclass().getDeclaredField("m_methodName");
+			f.setAccessible(true);
+			f.set(baseTestMethod, testCaseName);
+		} catch (Exception e) {
+			Reporter.log("Exception : " + e.getMessage());
+		}
 	}
 }

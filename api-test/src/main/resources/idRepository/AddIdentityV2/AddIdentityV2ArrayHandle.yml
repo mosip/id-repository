@@ -33,16 +33,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithMultipleEmail_And_OneEmail_As_Handle_Pos:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with multiple email entries and one email tagged as handle
@@ -78,16 +79,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithMultipleEmailWithoutHandle:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with multiple email entries and no email tagged as handle
@@ -123,16 +125,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithUniqueEmail_Pos:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with a unique email entry tagged as handle
@@ -167,16 +170,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithMultipleEmailHandlesTagged:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with multiple email entries tagged as handle
@@ -212,16 +216,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithEmailHandleAndNotification:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with email having both handle and notification tags
@@ -257,16 +262,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_VerifySelectedHandlesMatchesTaggedEmail:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called and selectedHandles matches the tagged email
@@ -302,16 +308,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_SelectedHandlesOrderVariation:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with selectedHandles in a different order
@@ -347,16 +354,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithOneEmailInArray:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with one email in the array
@@ -392,16 +400,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_OnlyNotificationTag:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with email having only a notification tag
@@ -437,16 +446,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithLengthyEmailArray:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with a lengthy email array
@@ -482,16 +492,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithMultipleHandlesDifferentDomains:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with multiple email handles from different domains
@@ -527,16 +538,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_WithMultipleSelectedHandlesArrays:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with multiple selected handle arrays
@@ -571,16 +583,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withoutselectedhandles:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called without selected handles
@@ -615,16 +628,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withnullselectedhandles_Neg:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system rejects add identity with array handle values using Add Identity V2 when the API is called with null selected handles
@@ -659,20 +673,21 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
       "errors": [
         {
-           "errorCode": "IDR-IDC-002"
+          "errorCode": "IDR-IDC-002"
         }
-    ]
-}'
+      ]
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withemptyselecthandles:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with empty selected handles
@@ -707,16 +722,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withinvalidselectedhandletype_Neg:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system rejects add identity with array handle values using Add Identity V2 when the API is called with an invalid selected handle type
@@ -751,20 +767,21 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
       "errors": [
         {
-           "errorCode": "IDR-IDC-002"
+          "errorCode": "IDR-IDC-002"
         }
-    ]
-}'
+      ]
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withNotApplicableSelectedHandles:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with not applicable selected handles
@@ -799,16 +816,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withUnknownSelectedHandles:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with unknown selected handles
@@ -843,16 +861,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withDuplicateSelectedHandles:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with duplicate selected handles
@@ -888,16 +907,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withSelectedHandlesCaseMismatch:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with case-mismatched selected handles
@@ -933,16 +953,17 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
+
   IdRepository_AddIdentityArrayHandleV2_withSelectedHandlesSpace:
     endPoint: /idrepository/v1/identity/v2
     description: Verify that the system successfully adds an identity with array handle values using Add Identity V2 when the API is called with selected handles containing leading or trailing spaces
@@ -978,13 +999,13 @@ AddIdentityV2ArrayHandle:
             "time": "2025-07-01T06:10:00.000Z"
           }
         }
-     ],
+      ],
       "version": "v2",
       "introducerRID": "212124324784879",
       "introducerUIN": "212124324784879",
       "category": "individualBiometrics",
       "requesttime": "$TIMESTAMP$"
-}'
+    }'
     output: '{
-      "status":"ACTIVATED"
-}'
+      "status": "ACTIVATED"
+    }'
