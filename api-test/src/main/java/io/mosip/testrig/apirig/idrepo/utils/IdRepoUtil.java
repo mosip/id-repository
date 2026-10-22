@@ -202,12 +202,39 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
+		if (testRequiresArrayTypedEmail(testCaseName) && !schemaFieldIsArrayHandle(email)) {
+			throw new SkipException("Schema field '" + email + "' is not an array-typed handle — "
+					+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
+		}
+
 		else if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("Invalid_BioVal")
 				&& (ConfigManager.isInServiceNotDeployedList(GlobalConstants.ADMIN))) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
 		return testCaseName;
+	}
+
+	public static boolean schemaFieldIsArrayHandle(String fieldName) {
+		if (fieldName == null || fieldName.isBlank()) {
+			return false;
+		}
+		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();
+		if (props == null || !props.has(fieldName)) {
+			return false;
+		}
+		JSONObject fieldDef = props.getJSONObject(fieldName);
+		return fieldDef.optBoolean("handle", false) && "array".equals(fieldDef.optString("type", "string"));
+	}
+
+	private static boolean testRequiresArrayTypedEmail(String testCaseName) {
+		return testCaseName.contains("_WithMultipleEmail")
+				|| testCaseName.contains("_RetainTaggedEmail")
+				|| testCaseName.contains("_WithLengthyEmailArray")
+				|| testCaseName.contains("_WithMultipleHandlesDifferentDomains")
+				|| testCaseName.contains("_WithEmailHandleAndNotification")
+				|| testCaseName.contains("_OnlyNotificationTag")
+				|| testCaseName.contains("_SelectedHandlesOrderVariation");
 	}
 
 	/** True when the named field exists in the schema and is declared "handle": true (case-insensitive). */

@@ -129,7 +129,7 @@ UpdateDraftUinData:
       "uin": "$ID:AddIdentity_For_NewScen_smoke_Pos_UIN$"
       }'
       output: '{
-   "responseCode": "500"
+   "responseCode": "401"
 }'
 
   IdRepository_UpdateDraftUinData_WithUnauthorizedRole_StatusCode_Neg:

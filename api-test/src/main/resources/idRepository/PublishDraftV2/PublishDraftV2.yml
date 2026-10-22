@@ -134,7 +134,7 @@ PublishDraftV2:
       "registrationId":"$RIDV2NEW$"
       }'
       output: '{
-   "responseCode": "500"
+   "responseCode": "401"
 }'
 
   IdRepository_PublishDraftV2_WithUnauthorizedRole_StatusCode_Neg:
