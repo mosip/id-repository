@@ -29,8 +29,10 @@ import io.mosip.idrepository.core.util.DummyPartnerCheckUtil;
 import io.mosip.idrepository.core.util.EnvUtil;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
+import io.mosip.idrepository.identity.entity.UinBiometricHistory;
 import io.mosip.idrepository.identity.entity.UinBiometricDraft;
 import io.mosip.idrepository.identity.entity.UinDocument;
+import io.mosip.idrepository.identity.entity.UinDocumentHistory;
 import io.mosip.idrepository.identity.entity.UinDocumentDraft;
 import io.mosip.idrepository.identity.entity.UinDraft;
 import io.mosip.idrepository.identity.helper.AnonymousProfileHelper;
@@ -60,6 +62,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -845,6 +848,8 @@ public class IdRepoDraftServiceImplTest {
 
 	@Test
 	public void testPublishDocuments() {
+		ReflectionTestUtils.setField(idRepoServiceImpl, "uinBioHRepo", uinBioHRepo);
+		ReflectionTestUtils.setField(idRepoServiceImpl, "uinDocHRepo", uinDocHRepo);
 		final Uin uinObject = new Uin();
 		uinObject.setUinRefId("1234567890");
 		UinDraft uin = new UinDraft();
@@ -865,6 +870,22 @@ public class IdRepoDraftServiceImplTest {
 		biometrics.add(biometric);
 		uin.setBiometrics(biometrics);
 		ReflectionTestUtils.invokeMethod(idRepoServiceImpl, "publishDocuments", uin, uinObject);
+		ArgumentCaptor<UinBiometricHistory> history =
+				ArgumentCaptor.forClass(UinBiometricHistory.class);
+		Mockito.verify(uinBioHRepo).save(history.capture());
+		assertEquals(uinObject.getUinRefId(), history.getValue().getUinRefId());
+		assertEquals(biometric.getBioFileId(), history.getValue().getBioFileId());
+		assertEquals(biometric.getBiometricFileType(), history.getValue().getBiometricFileType());
+		assertEquals(biometric.getBiometricFileHash(), history.getValue().getBiometricFileHash());
+		assertNotNull(history.getValue().getEffectiveDateTime());
+		ArgumentCaptor<UinDocumentHistory> documentHistory =
+				ArgumentCaptor.forClass(UinDocumentHistory.class);
+		Mockito.verify(uinDocHRepo).save(documentHistory.capture());
+		assertEquals(uinObject.getUinRefId(), documentHistory.getValue().getUinRefId());
+		assertEquals(document.getDoccatCode(), documentHistory.getValue().getDoccatCode());
+		assertEquals(document.getDocId(), documentHistory.getValue().getDocId());
+		assertEquals(document.getDocHash(), documentHistory.getValue().getDocHash());
+		assertNotNull(documentHistory.getValue().getEffectiveDateTime());
 	}
 
 	@Ignore
