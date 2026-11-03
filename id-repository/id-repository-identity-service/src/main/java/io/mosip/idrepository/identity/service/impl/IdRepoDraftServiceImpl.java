@@ -73,8 +73,10 @@ import io.mosip.idrepository.core.spi.IdRepoDraftService;
 import io.mosip.idrepository.core.util.DataValidationUtil;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
+import io.mosip.idrepository.identity.entity.UinBiometricHistory;
 import io.mosip.idrepository.identity.entity.UinBiometricDraft;
 import io.mosip.idrepository.identity.entity.UinDocument;
+import io.mosip.idrepository.identity.entity.UinDocumentHistory;
 import io.mosip.idrepository.identity.entity.UinDocumentDraft;
 import io.mosip.idrepository.identity.entity.UinDraft;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
@@ -1348,8 +1350,16 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 				// Retry after a committed write may hit uk_uinb. Treat as already published.
 				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						PUBLISH_DRAFT, "Live bio rows already exist (retry) | error=" + e.getMessage());
+				uinBiometricList = Collections.emptyList();
 			}
 		}
+		uinBiometricList.forEach(bio -> uinBioHRepo.save(new UinBiometricHistory(
+				bio.getUinRefId(), DateUtils2.getUTCCurrentDateTime(),
+				bio.getBioFileId(), bio.getBiometricFileType(),
+				bio.getBiometricFileName(), bio.getBiometricFileHash(),
+				bio.getLangCode(), bio.getCreatedBy(), bio.getCreatedDateTime(),
+				bio.getUpdatedBy(), bio.getUpdatedDateTime(),
+				bio.getIsDeleted(), bio.getDeletedDateTime())));
 
 		List<UinDocument> uinDocumentList = draft.getDocuments() == null ? Collections.emptyList()
 				: draft.getDocuments().stream().map(doc -> {
@@ -1365,8 +1375,16 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 				// Retry after a committed write may hit uk_uind. Treat as already published.
 				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						PUBLISH_DRAFT, "Live doc rows already exist (retry) | error=" + e.getMessage());
+				uinDocumentList = Collections.emptyList();
 			}
 		}
+		uinDocumentList.forEach(doc -> uinDocHRepo.save(new UinDocumentHistory(
+				doc.getUinRefId(), DateUtils2.getUTCCurrentDateTime(),
+				doc.getDoccatCode(), doc.getDoctypCode(), doc.getDocId(),
+				doc.getDocName(), doc.getDocfmtCode(), doc.getDocHash(),
+				doc.getLangCode(), doc.getCreatedBy(), doc.getCreatedDateTime(),
+				doc.getUpdatedBy(), doc.getUpdatedDateTime(),
+				doc.getIsDeleted(), doc.getDeletedDateTime())));
 	}
 
 	private String decryptUin(String encryptedUin, String uinHash) throws IdRepoAppException {
