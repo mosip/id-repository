@@ -4,8 +4,10 @@ import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
+import io.mosip.idrepository.core.dto.IdRequestV2DTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.RequestDTO;
+import io.mosip.idrepository.core.dto.RequestV2DTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.spi.IdRepoDraftService;
@@ -421,8 +423,8 @@ public class IdRepoDraftControllerTest {
 	public void testUpdateDraftV2() throws IdRepoAppException {
 		IdResponseDTO responseDTO = new IdResponseDTO();
 		when(draftService.updateDraftV2(any(), any())).thenReturn(responseDTO);
-		IdRequestDTO idRequest = new IdRequestDTO();
-		idRequest.setRequest(new RequestDTO());
+		IdRequestV2DTO idRequest = new IdRequestV2DTO();
+		idRequest.setRequest(new RequestV2DTO());
 		ResponseEntity<IdResponseDTO> response = controller.updateDraftV2("10001100770000320200720094735", idRequest, errors);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(responseDTO, response.getBody());
@@ -433,8 +435,8 @@ public class IdRepoDraftControllerTest {
 		when(draftService.updateDraftV2(any(), any()))
 				.thenThrow(new IdRepoAppException(IdRepoErrorConstants.UNKNOWN_ERROR));
 		try {
-			IdRequestDTO idRequest = new IdRequestDTO();
-			idRequest.setRequest(new RequestDTO());
+			IdRequestV2DTO idRequest = new IdRequestV2DTO();
+			idRequest.setRequest(new RequestV2DTO());
 			controller.updateDraftV2("10001100770000320200720094735", idRequest, errors);
 		} catch (IdRepoAppException e) {
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());

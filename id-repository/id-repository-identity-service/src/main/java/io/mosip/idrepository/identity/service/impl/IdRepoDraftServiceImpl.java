@@ -63,6 +63,7 @@ import io.mosip.idrepository.core.dto.DraftUinResponseDto;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
 import io.mosip.idrepository.core.dto.RequestDTO;
+import io.mosip.idrepository.core.dto.VerificationMetadata;
 import io.mosip.idrepository.core.dto.ResponseDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.exception.IdRepoAppUncheckedException;
@@ -901,6 +902,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		if (Objects.isNull(liveUin.getUinData())) {
 			return;
 		}
+		if (Objects.isNull(draft.getUinData())) {
+			// LOST draft stamped before any updateDraftV2 call: the draft has no identity
+			// data yet, so there is nothing to merge. Take the live identity as it is.
+			draft.setUinData(liveUin.getUinData());
+			draft.setUinDataHash(securityManager.hash(draft.getUinData()));
+			return;
+		}
 		Configuration cfg = Configuration.builder()
 				.jsonProvider(new JacksonJsonProvider())
 				.mappingProvider(new JacksonMappingProvider())
@@ -1312,10 +1320,14 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		try {
 			Map<String, Object> identityData = mapper.readValue(draft.getUinData(),
 					new TypeReference<Map<String, Object>>() {});
-			request.setVerifiedAttributes(
-					mapper.convertValue(identityData.get(VERIFIED_ATTRIBUTES),
-							new TypeReference<List<String>>() {}));
-			identityData.remove(VERIFIED_ATTRIBUTES);
+			Object verifiedAttributes = identityData.remove(VERIFIED_ATTRIBUTES);
+			if (verifiedAttributes instanceof List<?> list && list.stream().anyMatch(Map.class::isInstance)) {
+				request.setVerifiedAttributesMetadata(
+						mapper.convertValue(list, new TypeReference<List<VerificationMetadata>>() {}));
+			} else {
+				request.setVerifiedAttributes(
+						mapper.convertValue(verifiedAttributes, new TypeReference<List<String>>() {}));
+			}
 			request.setIdentity(identityData);
 		} catch (IOException e) {
 			idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
@@ -1539,9 +1551,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			 */
 			try {
 				ObjectNode identityObject = mapper.readValue(uinData, ObjectNode.class);
+				// Raw List: stored entries are claim names (v1) or verification objects (v2).
 				response.setVerifiedAttributes(
-						mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES),
-								new TypeReference<List<String>>() {}));
+						mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES), List.class));
 				identityObject.remove(VERIFIED_ATTRIBUTES); // intentional — field is promoted to top-level
 				response.setIdentity(identityObject);
 			} catch (IOException e) {
