@@ -24,6 +24,7 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.InvalidJsonException;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.mosip.idrepository.core.constant.CredentialRequestStatusLifecycle;
@@ -33,6 +34,7 @@ import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.dto.DocumentsDTO;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
 import io.mosip.idrepository.core.dto.RequestDTO;
+import io.mosip.idrepository.core.dto.VerificationMetadata;
 import io.mosip.idrepository.core.entity.CredentialRequestStatus;
 import io.mosip.idrepository.core.entity.Handle;
 import io.mosip.idrepository.core.repository.HandleRepo;
@@ -215,7 +217,16 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		String uinRefId = UUIDUtils.getUUID(UUIDUtils.NAMESPACE_OID, uin + SPLITTER + DateUtils2.getUTCCurrentDateTime())
 				.toString();
 		ObjectNode identityObject = mapper.convertValue(request.getRequest().getIdentity(), ObjectNode.class);
-		identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getRequest().getVerifiedAttributes());
+		if (request.getRequest().getVerifiedAttributesMetadata() != null) {
+			DocumentContext inputData = jacksonJson(mapper.convertValue(request.getRequest().getIdentity(),
+					new TypeReference<Map<String, Object>>() {
+					}));
+			DocumentContext storedData = jacksonJson(new HashMap<>());
+			applyV2VerifiedAttributes(request.getRequest().getVerifiedAttributesMetadata(), inputData, storedData);
+			identityObject.putPOJO(VERIFIED_ATTRIBUTES, storedData.read("$." + VERIFIED_ATTRIBUTES));
+		} else {
+			identityObject.putPOJO(VERIFIED_ATTRIBUTES, request.getRequest().getVerifiedAttributes());
+		}
 		byte[] identityInfo = convertToBytes(identityObject);
 		String uinHash = getUinHash(uin);
 		String uinHashWithSalt = uinHash.split(SPLITTER)[1];
@@ -548,8 +559,26 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		}
 	}
 
+	/**
+	 * Merges the request's verified attributes into the stored identity and writes the result
+	 * to both documents, so the later JSON comparison sees no difference for this key.
+	 * <ul>
+	 * <li>v2 ({@code verifiedAttributesMetadata} set): delegates to
+	 * {@link #applyV2VerifiedAttributes}.</li>
+	 * <li>v1: the stored list of claim names and the request list are combined into a set
+	 * (duplicates removed; order not kept).</li>
+	 * </ul>
+	 *
+	 * @param requestDTO update request body
+	 * @param inputData  request identity JSON; changed in place
+	 * @param dbData     stored identity JSON; changed in place
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void updateVerifiedAttributes(RequestDTO requestDTO, DocumentContext inputData, DocumentContext dbData) {
+		if (requestDTO.getVerifiedAttributesMetadata() != null) {
+			applyV2VerifiedAttributes(requestDTO.getVerifiedAttributesMetadata(), inputData, dbData);
+			return;
+		}
 		List dbVerifiedAttributes = (List) dbData.read(".verifiedAttributes");
 		dbVerifiedAttributes.remove(null);
 		if (dbVerifiedAttributes.isEmpty()) {
@@ -562,6 +591,148 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 		HashSet<String> verifiedAttributesSet = new HashSet<>(verifiedAttributeList);
 		inputData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
 		dbData.put("$", VERIFIED_ATTRIBUTES, verifiedAttributesSet);
+	}
+
+	/**
+	 * Merges v2 {@link VerificationMetadata} into the stored identity.
+	 * <ol>
+	 * <li>Copies the request entries and drops claims whose field has no value in either the
+	 * request or the stored identity; entries left with no claims are dropped.</li>
+	 * <li>Reads the stored entries (a legacy v1 list of names becomes one entry with framework
+	 * and process {@code NA}).</li>
+	 * <li>A stored entry whose trust framework and verification process (case-insensitive) are
+	 * not in the request is kept, but only with the claims whose field is absent from the request
+	 * identity; it is dropped if none remain. A stored entry with a matching framework and process
+	 * is replaced by the request entry.</li>
+	 * </ol>
+	 * With no stored entries, the filtered request entries are used as they are. The merged list
+	 * is written to both {@code inputData} and {@code dbData}.
+	 *
+	 * @param incoming  v2 entries from the request; not modified
+	 * @param inputData request identity JSON; changed in place
+	 * @param dbData    stored identity JSON (empty on add); changed in place
+	 */
+	private void applyV2VerifiedAttributes(List<VerificationMetadata> incoming, DocumentContext inputData,
+			DocumentContext dbData) {
+		List<VerificationMetadata> inputVerifiedAttributes = new ArrayList<>();
+		for (VerificationMetadata item : incoming) {
+			VerificationMetadata copy = new VerificationMetadata();
+			copy.setTrustFramework(item.getTrustFramework());
+			copy.setVerificationProcess(item.getVerificationProcess());
+			copy.setClaims(item.getClaims() == null ? new ArrayList<>() : new ArrayList<>(item.getClaims()));
+			copy.setMetadata(item.getMetadata());
+			inputVerifiedAttributes.add(copy);
+		}
+		retainClaimsThatExist(inputData, dbData, inputVerifiedAttributes);
+
+		List<VerificationMetadata> stored = readStoredVerificationMetadata(dbData);
+		if (stored.isEmpty()) {
+			inputData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
+			dbData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
+			return;
+		}
+		for (VerificationMetadata saved : stored) {
+			boolean updated = inputVerifiedAttributes.stream()
+					.anyMatch(vm -> StringUtils.equalsIgnoreCase(saved.getTrustFramework(), vm.getTrustFramework())
+							&& StringUtils.equalsIgnoreCase(saved.getVerificationProcess(), vm.getVerificationProcess()));
+			if (!updated) {
+				List<String> claims = saved.getClaims() == null ? List.of() : saved.getClaims();
+				List<String> claimsNotUpdated = claims.stream()
+						.filter(claim -> !fieldHasValue(inputData, claim))
+						.collect(Collectors.toList());
+				if (!claimsNotUpdated.isEmpty()) {
+					saved.setClaims(claimsNotUpdated);
+					inputVerifiedAttributes.add(saved);
+				}
+			}
+		}
+		inputData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
+		dbData.put("$", VERIFIED_ATTRIBUTES, inputVerifiedAttributes);
+	}
+
+	/**
+	 * Removes, from each entry, claims whose field has no value in either document, then removes
+	 * entries left without claims.
+	 *
+	 * @param inputData               request identity JSON
+	 * @param dbData                  stored identity JSON
+	 * @param inputVerifiedAttributes entries to filter; changed in place
+	 */
+	private void retainClaimsThatExist(DocumentContext inputData, DocumentContext dbData,
+			List<VerificationMetadata> inputVerifiedAttributes) {
+		for (VerificationMetadata metadata : inputVerifiedAttributes) {
+			List<String> claims = metadata.getClaims() == null ? List.of() : metadata.getClaims();
+			metadata.setClaims(claims.stream()
+					.filter(claim -> fieldHasValue(inputData, claim) || fieldHasValue(dbData, claim))
+					.collect(Collectors.toList()));
+		}
+		inputVerifiedAttributes.removeIf(item -> item.getClaims() == null || item.getClaims().isEmpty());
+	}
+
+	/**
+	 * @param data    identity JSON
+	 * @param fieldId top-level field name
+	 * @return true when {@code $.fieldId} exists and is not null
+	 */
+	private boolean fieldHasValue(DocumentContext data, String fieldId) {
+		try {
+			return data.read("$." + fieldId) != null;
+		} catch (PathNotFoundException ignored) {
+			return false;
+		}
+	}
+
+	/**
+	 * Reads the stored verified attributes as v2 entries.
+	 * <p>
+	 * A legacy v1 list of claim names is converted to a single entry with trust framework and
+	 * verification process {@code NA} and the current time, so it can be merged with v2 data.
+	 * </p>
+	 *
+	 * @param dbData stored identity JSON
+	 * @return mutable list of entries; empty when the key is absent, null or empty
+	 */
+	private List<VerificationMetadata> readStoredVerificationMetadata(DocumentContext dbData) {
+		List<?> matches;
+		try {
+			matches = dbData.read(".verifiedAttributes");
+		} catch (PathNotFoundException ex) {
+			return new ArrayList<>();
+		}
+		if (matches == null || matches.isEmpty() || matches.get(0) == null) {
+			return new ArrayList<>();
+		}
+		Object stored = matches.get(0);
+		if (!(stored instanceof List<?> storedList) || storedList.isEmpty()) {
+			return new ArrayList<>();
+		}
+		if (storedList.stream().allMatch(String.class::isInstance)) {
+			VerificationMetadata converted = new VerificationMetadata();
+			converted.setClaims(storedList.stream().map(String.class::cast).collect(Collectors.toList()));
+			converted.setTrustFramework("NA");
+			converted.setVerificationProcess("NA");
+			Map<String, Object> metadata = new HashMap<>();
+			metadata.put("trust_framework", "NA");
+			metadata.put("verification_process", "NA");
+			metadata.put("time", DateUtils2.formatToISOString(DateUtils2.getUTCCurrentDateTime()));
+			converted.setMetadata(metadata);
+			return new ArrayList<>(List.of(converted));
+		}
+		return mapper.convertValue(storedList, new TypeReference<List<VerificationMetadata>>() {
+		});
+	}
+
+	/**
+	 * Wraps an object (map, list or JSON string) in a JsonPath document backed by Jackson, so
+	 * POJOs such as {@link VerificationMetadata} can be written into it.
+	 *
+	 * @param source value to parse
+	 * @return a writable document
+	 */
+	private static DocumentContext jacksonJson(Object source) {
+		Configuration configuration = Configuration.builder().jsonProvider(new JacksonJsonProvider())
+				.mappingProvider(new JacksonMappingProvider()).build();
+		return JsonPath.using(configuration).parse(source);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

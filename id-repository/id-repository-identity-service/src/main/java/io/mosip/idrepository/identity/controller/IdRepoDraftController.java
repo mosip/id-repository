@@ -7,7 +7,9 @@ import io.mosip.idrepository.core.constant.IdType;
 import io.mosip.idrepository.core.constant.IdRepoErrorConstants;
 import io.mosip.idrepository.core.dto.DraftResponseDto;
 import io.mosip.idrepository.core.dto.IdRequestDTO;
+import io.mosip.idrepository.core.dto.IdRequestV2DTO;
 import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.dto.RequestDTO;
 import io.mosip.idrepository.core.exception.IdRepoAppException;
 import io.mosip.idrepository.core.helper.AuditHelper;
 import io.mosip.idrepository.core.logger.IdRepoLogger;
@@ -483,12 +485,17 @@ public class IdRepoDraftController {
 	public ResponseEntity<IdResponseDTO> updateDraftV2(
 			@Parameter(description = "Registration ID of the draft.")
 			@PathVariable String registrationId,
-			@RequestBody IdRequestDTO request, @ApiIgnore Errors errors) throws IdRepoAppException {
+			@RequestBody IdRequestV2DTO request, @ApiIgnore Errors errors) throws IdRepoAppException {
 		try {
-			request.getRequest().setRegistrationId(registrationId);
-			validator.validateRequest(request.getRequest(), errors, "update");
+			IdRequestDTO legacyRequest = request.toLegacyRequest();
+			if (legacyRequest.getRequest() == null) {
+				legacyRequest.setRequest(new RequestDTO());
+			}
+			legacyRequest.getRequest().setRegistrationId(registrationId);
+			validator.validateRequest(legacyRequest.getRequest(), errors, "update");
 			DataValidationUtil.validate(errors);
-			return new ResponseEntity<>(draftService.updateDraftV2(registrationId, request), HttpStatus.OK);
+			validator.validateVerificationMetadata(legacyRequest.getRequest().getVerifiedAttributesMetadata());
+			return new ResponseEntity<>(draftService.updateDraftV2(registrationId, legacyRequest), HttpStatus.OK);
 		} catch (IdRepoAppException e) {
 			auditHelper.auditError(AuditModules.ID_REPO_CORE_SERVICE, AuditEvents.UPDATE_DRAFT_REQUEST_RESPONSE,
 					registrationId, IdType.ID, e);
