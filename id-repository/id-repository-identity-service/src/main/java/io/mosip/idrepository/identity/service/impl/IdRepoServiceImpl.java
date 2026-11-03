@@ -139,11 +139,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** The uin detail repo. */
 	@Autowired
-	private UinDocumentHistoryRepo uinDocHRepo;
+	protected UinDocumentHistoryRepo uinDocHRepo;
 
 	/** The uin bio H repo. */
 	@Autowired
-	private UinBiometricHistoryRepo uinBioHRepo;
+	protected UinBiometricHistoryRepo uinBioHRepo;
 
 	/** The uin history repo. */
 	@Autowired
