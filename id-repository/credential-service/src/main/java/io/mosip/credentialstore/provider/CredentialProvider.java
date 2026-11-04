@@ -236,7 +236,7 @@ public class CredentialProvider {
 
 		try {
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"Preparing demo and bio sharable attributes");
+					"Preparing demo, document and bio sharable attributes");
 			Map<AllowedKycDto, Object> attributesMap = new HashMap<>();
 			JSONObject identity = new JSONObject((Map) idResponseDto.getResponse().getIdentity());
 
@@ -245,6 +245,7 @@ public class CredentialProvider {
 			List<AllowedKycDto> sharableAttributeList = sharableAttributeFromPolicy;
 			Set<AllowedKycDto> sharableAttributeDemographicKeySet = new HashSet<>();
 			Set<AllowedKycDto> sharableAttributeBiometricKeySet = new HashSet<>();
+			Set<AllowedKycDto> sharableAttributeDocumentKeySet = new HashSet<>();
 			List<String> userRequestedAttributes = credentialServiceRequestDto.getSharableAttributes();
 			Map<String, Object> additionalData = credentialServiceRequestDto.getAdditionalData();
 			if (userRequestedAttributes != null && !userRequestedAttributes.isEmpty()) {
@@ -292,6 +293,8 @@ public class CredentialProvider {
 						} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
 							sharableAttributeBiometricKeySet.add(dto);
 
+						} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.DOCUMENT)) {
+							sharableAttributeDocumentKeySet.add(dto);
 						}
 					}
 				});
@@ -307,6 +310,8 @@ public class CredentialProvider {
 					} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.CBEFF)) {
 						sharableAttributeBiometricKeySet.add(dto);
 
+					} else if (dto.getGroup().equalsIgnoreCase(CredentialConstants.DOCUMENT)) {
+						sharableAttributeDocumentKeySet.add(dto);
 					}
 
 				});
@@ -398,8 +403,22 @@ public class CredentialProvider {
 				}
 
 			}
+
+			for (AllowedKycDto key : sharableAttributeDocumentKeySet) {
+				String documentValue = null;
+				String attribute = key.getSource().get(0).getAttribute();
+				for (DocumentsDTO doc : documents) {
+					if (doc.getCategory().equals(attribute)) {
+						documentValue = doc.getValue();
+						break;
+					}
+				}
+				if (documentValue != null) {
+					attributesMap.put(key, documentValue);
+				}
+			}
 			LOGGER.debug(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,
-					"end preparing demo and bio sharable attributes");
+					"end preparing demo, document and bio sharable attributes");
 			return attributesMap;
 		} catch (Exception e) {
 			LOGGER.error(IdRepoSecurityManager.getUser(), LoggerFileConstant.REQUEST_ID.toString(), requestId,

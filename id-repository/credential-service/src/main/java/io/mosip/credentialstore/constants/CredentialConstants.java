@@ -25,6 +25,8 @@ public class CredentialConstants {
 
 	public static final String CBEFF = "CBEFF";
 
+	public static final String DOCUMENT = "DOCUMENT";
+
 	public static final String EXTRACTION = "extraction";
 
 	public static final String MASK = "mask";
