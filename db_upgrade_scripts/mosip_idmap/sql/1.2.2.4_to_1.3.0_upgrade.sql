@@ -1,4 +1,4 @@
-\c mosip_idmap
+\c :mosipdbname
 
 
 -- PERFORMANCE INDEXES START--

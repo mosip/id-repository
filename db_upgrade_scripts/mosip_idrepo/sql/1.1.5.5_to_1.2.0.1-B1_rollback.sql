@@ -1,4 +1,4 @@
-\c mosip_idrepo
+\c :mosipdbname
 
 REASSIGN OWNED BY postgres TO sysadmin;
 

@@ -1,5 +1,5 @@
 -- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_idrepo
+-- Database Name: :mosipdbname
 -- Purpose    		: Revoking Database Alter deployement done for release in ID Repository DB.       
 -- Create By   		: Anusha SE
 -- Created Date		: Dec-2023
@@ -8,7 +8,7 @@
 -- -------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
 
-\c mosip_idrepo sysadmin
+\c :mosipdbname sysadmin
 
 DROP TABLE IF EXISTS idrepo.handle;
 
