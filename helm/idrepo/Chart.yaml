@@ -11,25 +11,3 @@ keywords:
 maintainers:
   - email: info@mosip.io
     name: MOSIP
-dependencies:
-- name: idrepo-saltgen
-  alias: saltgen
-  version: 12.3.1-develop
-  repository: https://mosip.github.io/mosip-helm
-  condition: saltgen.enabled
-- name: identity
-  version: 12.3.1-develop
-  repository: https://mosip.github.io/mosip-helm
-  condition: identity.enabled
-- name: credential
-  repository: https://mosip.github.io/mosip-helm
-  version: 12.3.1-develop
-  condition: credential.enabled
-- name: vid
-  version: 12.3.1-develop
-  repository: https://mosip.github.io/mosip-helm
-  condition: vid.enabled
-- name: credentialrequest
-  repository: https://mosip.github.io/mosip-helm
-  version: 12.3.1-develop
-  condition: credentialrequest.enabled
