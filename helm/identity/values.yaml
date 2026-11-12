@@ -46,7 +46,7 @@ service:
   externalTrafficPolicy: Cluster
 image:
   registry: docker.io
-  repository: mosipdev/apitest-idrepo
+  repository: mosipdev/id-repository-service
   tag: IDREPO-1583-consolidate-idrepo-services
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
