@@ -17,7 +17,8 @@ Skip: `target/` `.local/` `testng-report/` `*.iso` `*.p12` WireMock `mappings/*.
 ├─ helm/                charts
 ├─ deploy/              cluster scripts
 ├─ api-test/            API test rig
-└─ api-docs/            OpenAPI
+├─ api-docs/            OpenAPI
+└─ docs/                config guide · design/ (service-consolidation.md)
 ```
 
 ## Global rules
@@ -26,4 +27,5 @@ Skip: `target/` `.local/` `testng-report/` `*.iso` `*.p12` WireMock `mappings/*.
 - Salts `uin_hash_salt` / `uin_encrypt_salt` live in idrepo **and** idmap; fill only via Job `helm/idrepo-saltgen`, never a Deployment or the HTTP JVM. IDA's `ida.uin_hash_salt` is separate.
 - Schema change → `db_scripts` + `db_upgrade_scripts` + `db_release_scripts` (with rollback / revoke).
 - Frozen contracts: REST `/idrepository/v1/identity`, `/idrepository/v1/vid`, `/v1/credentialservice`, `/v1/credentialrequest`; WebSub `{partnerId}/CREDENTIAL_ISSUED`, `CREDENTIAL_STATUS_UPDATE`; Keycloak `mosip-idrepo-client`. Changing one → update `api-test` + `api-docs`.
+- Cluster: one Service `identity.idrepo` for all four prefixes. `mosip.idrepo.{identity,vid,credrequest.generator,credential.service}.url` → `http://identity.idrepo`; `vid.idrepo` etc. no longer exist.
 - Local: no id-repo container; run `local-dev-setup/run-idrepo-local.*`.

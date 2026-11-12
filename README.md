@@ -18,14 +18,21 @@ This repository contains source code and design documents for MOSIP [ID Reposito
 
 ## Services
 
-The ID Repository contains the following services. For detailed code setup instructions for each service, please refer to their individual README files:
+Identity, VID, credential request, and credential store now run in **one** HTTP service. The salt generator stays a separate one-shot Job. For detailed setup instructions, refer to each module's README:
 
-1. **[Credential Service](id-repository/credential-service/README.md)** - Service for handling credentials.
-2. **[Identity Service](id-repository/id-repository-identity-service/README.md)** - Service for identity management.
-3. **[VID Service](id-repository/id-repository-vid-service/README.md)** - Service for Virtual ID management.
-4. **[Key Generator](id-repository/id-repository-salt-generator/README.md)** - Utility for generating salt/keys.
-5. **[Credential Request Generator](id-repository/credential-request-generator/README.md)** - Generator for credential requests.
-6. **[Core](id-repository/id-repository-core/README.md)** - Core library and shared components.
+1. **[ID Repository Service](id-repository/id-repository-service/README.md)** - The single HTTP deployable (port `8090`). It contains identity and draft, VID, credential request generator, and credential store. Callers use the same URL prefixes as before:
+
+   | Domain | URL prefix | Database |
+   |---|---|---|
+   | Identity and draft | `/idrepository/v1/identity` | `mosip_idrepo` |
+   | VID | `/idrepository/v1` (`/vid`, `/draft/vid`, …) | `mosip_idmap` |
+   | Credential store | `/v1/credentialservice` | `mosip_credential` |
+   | Credential request | `/v1/credentialrequest` | `mosip_credential` |
+
+2. **[Salt Generator](id-repository/id-repository-salt-generator/README.md)** - One-shot Job that fills `uin_hash_salt` and `uin_encrypt_salt` in `mosip_idrepo` and `mosip_idmap`. Deployed only as the `helm/idrepo-saltgen` Job, never inside the HTTP service.
+3. **[Core](id-repository/id-repository-core/README.md)** - Published library (`io.mosip.idrepository.core.*`) with shared DTOs, entities, and utilities used by this service and by IDA.
+
+The separate `id-repository-identity-service`, `id-repository-vid-service`, `credential-service`, and `credential-request-generator` modules no longer exist. See the [service consolidation design](docs/design/service-consolidation.md) for what changed, the three-database layout, and the config URLs an environment must update (`mosip.idrepo.vid.url`, `mosip.idrepo.credrequest.generator.url`, `mosip.idrepo.credential.service.url` → `http://identity.idrepo`).
 
 ## Codebase Relocation
 
@@ -42,8 +49,9 @@ See [DB guide](db_scripts/README.md) for database setup and migration details.
 The project requires:
 - **JDK:** 21.0.3
 - **Maven:** 3.9.6
-- **kernel-auth-adapter.jar** needs to be added to the build path to run the services
-- **Biometric SDK:** To run the Identity Service, a Biometric SDK implementation jar or [Mock SDK](https://github.com/mosip/mosip-mock-services/tree/master/mock-sdk) needs to be added to the build path
+- **kernel-auth-adapter** is a Maven dependency of the service; it does not need to be added to the build path manually.
+- **ID object validator:** `kernel-ref-idobjectvalidator.jar` must be on the loader path (`-Dloader.path`). Cluster images download it from the `artifactory-share` ConfigMap; for local runs see [additional jars](id-repository/local-dev-setup/deps/additional_jars/README.md).
+- **Biometric SDK:** the service calls a BioSDK service over HTTP (`biosdk-client`). Point it at a running BioSDK service or the [Mock SDK](https://github.com/mosip/mosip-mock-services/tree/master/mock-sdk).
 
 #### For Kubernetes Deployment
 
@@ -53,6 +61,8 @@ The project requires:
     ```
 
 ### Local Setup (for Development or Contribution)
+
+The quickest path is [local-dev-setup](id-repository/local-dev-setup/README.md). Docker Compose starts Postgres, config server, WireMock, MinIO, and keymanager, and `run-idrepo-local.bat` / `run-idrepo-local.sh` runs the service on the host at `http://localhost:8090`. The steps below are for running against your own config server.
 
 1. **Make sure the config server is running.** For detailed instructions on setting up and running the config server, refer to the [MOSIP Config Server Setup Guide](https://docs.mosip.io/1.2.0/modules/module-configuration).
 
@@ -68,8 +78,11 @@ The project requires:
 3. **Build the project:**
 
    ```text
+   cd id-repository
    mvn clean install -Dmaven.javadoc.skip=true -Dgpg.skip=true
    ```
+
+   In PowerShell, quote the flags: `"-Dmaven.javadoc.skip=true" "-Dgpg.skip=true"`.
 
 4. **Start the application:**
     - Click the Run button in your IDE, or
@@ -79,7 +92,8 @@ The project requires:
    java -Dspring.profiles.active=<profile> \
         -Dspring.cloud.config.uri=<config-url> \
         -Dspring.cloud.config.label=<config-label> \
-        -jar <jar-name>.jar
+        -Dloader.path=<path-to-kernel-ref-idobjectvalidator.jar> \
+        -jar id-repository-service/target/id-repository-service-<version>.jar
    ```
 
    **Example:**
@@ -87,7 +101,9 @@ The project requires:
     - _config-label_: `master` (git branch of config repo)
     - _config-url_: `http://localhost:51000` (URL of the config server)
 
-5. **Verify Swagger is accessible at:** `http://localhost:<port>/v1/<service>/swagger-ui/index.html`
+   The service loads the `application`, `id-repository`, `credential-service`, and `credential-request` property documents from the config server.
+
+5. **Verify Swagger is accessible:** http://localhost:8090/idrepository/v1/identity/swagger-ui/index.html (other links under [APIs](#apis)).
 
 ### Local Setup with Docker (Easy Setup for Demos)
 
@@ -98,12 +114,11 @@ Recommended for users who want a quick, ready-to-use setup — testers, students
 Pull the latest pre-built images from Docker Hub using the following commands:
 
 ```text
-docker pull mosipid/id-repository-identity-service:<version>
-docker pull mosipid/id-repository-vid-service:<version>
-docker pull mosipid/credential-service:<version>
-docker pull mosipid/credential-request-generator:<version>
+docker pull mosipid/id-repository-service:<version>
 docker pull mosipid/id-repository-salt-generator:<version>
 ```
+
+Releases before the consolidation published four separate images (`id-repository-identity-service`, `id-repository-vid-service`, `credential-service`, `credential-request-generator`). Do not mix those with `id-repository-service` in one environment.
 
 #### Option 2: Build Docker Images Locally
 
@@ -113,34 +128,35 @@ Recommended for contributors or developers who want to modify or build the servi
 
    ```text
    git clone https://github.com/mosip/id-repository.git
-   cd id-repository
+   cd id-repository/id-repository
    mvn clean install -Dmaven.javadoc.skip=true -Dgpg.skip=true
    ```
 
-2. **Navigate to each service directory and build the Docker image:**
+2. **Build the two Docker images:**
 
    ```text
-   cd id-repository/<service-directory>
-   docker build -t <service-name> .
+   docker build -t id-repository-service id-repository-service
+   docker build -t id-repository-salt-generator id-repository-salt-generator
    ```
 
 #### Running the Services
 
-Start each service using Docker:
+Run the salt generator once and let it finish before starting the service:
 
 ```text
-docker run -d -p <port>:<port> --name <service-name> <service-name>
+docker run --rm --name id-repository-salt-generator id-repository-salt-generator
+docker run -d -p 8090:8090 --name id-repository-service id-repository-service
 ```
 
-#### Verify Installation
+Both containers need the config server URL, profile, and label (see [Local Setup](#local-setup-for-development-or-contribution)).
 
-Check that all containers are running:
+#### Verify Installation
 
 ```text
 docker ps
 ```
 
-Access the services at `http://localhost:<port>` using the port mappings for each service.
+Access the service at `http://localhost:8090`. Health: `http://localhost:8090/idrepository/v1/identity/actuator/health`.
 
 ## Deployment
 
@@ -157,22 +173,26 @@ To deploy ID Repository services on a Kubernetes cluster, refer to the [Sandbox 
 
 ### Install
 
+Installs the `idrepo-saltgen` Job (waits for it to complete), then the `identity` chart, which runs `id-repository-service`:
+
 ```text
-cd deploy
+cd deploy/idrepo
 ./install.sh
 ```
+
+Before installing on an environment that ran the separate services, update the service URLs in `mosip-config` as described in the [consolidation design](docs/design/service-consolidation.md#6-service-urls-in-mosip-config). Otherwise calls to `vid.idrepo`, `credential.idrepo`, or `credentialrequest.idrepo` fail DNS resolution.
 
 ### Delete
 
 ```text
-cd deploy
+cd deploy/idrepo
 ./delete.sh
 ```
 
 ### Restart
 
 ```text
-cd deploy
+cd deploy/idrepo
 ./restart.sh
 ```
 
@@ -182,11 +202,21 @@ Refer to the [configuration guide](docs/configuration.md).
 
 ## APIs
 
-API documentation is available [here](https://mosip.github.io/documentation/).
+- One service, port **8090**: `http://localhost:8090` locally, `http://identity.idrepo` in cluster, `https://<api-internal-host>` via gateway
+- Prefixes: `/idrepository/v1/identity` (identity + draft) · `/idrepository/v1` (VID) · `/v1/credentialservice` · `/v1/credentialrequest`
+- Swagger ("Select a definition" switches domains, Authorize header `Authorization`):
+  - http://localhost:8090/idrepository/v1/identity/swagger-ui/index.html
+  - http://localhost:8090/idrepository/v1/swagger-ui/index.html
+  - http://localhost:8090/v1/credentialservice/swagger-ui/index.html
+  - http://localhost:8090/v1/credentialrequest/swagger-ui/index.html
+- OpenAPI JSON: same paths with `/v3/api-docs` instead of `/swagger-ui/index.html`
+- Health: http://localhost:8090/idrepository/v1/identity/actuator/health (also `info`, `prometheus`)
+- Static specs: [`api-docs`](api-docs) · published docs: [MOSIP API docs](https://mosip.github.io/documentation/)
+- Full endpoint list: [id-repository-service README](id-repository/id-repository-service/README.md#endpoints)
 
 ## Testing
 
-Automated functional tests are available in the [Functional Tests repo](https://github.com/mosip/mosip-functional-tests).
+API tests for this module are in [`api-test`](api-test/README.md); `deploy/idrepo-apitestrig` runs them on a cluster. Shared test utilities come from the [Functional Tests repo](https://github.com/mosip/mosip-functional-tests).
 
 ## Contribution & Community
 

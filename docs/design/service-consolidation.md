@@ -112,6 +112,45 @@ Unchanged in spirit, fewer charts:
 
 Probes and the ServiceMonitor use `/idrepository/v1/identity/actuator/health`. The old health URLs on 8091, 8094, and 8095 are gone. Monitors and the gateway must point at 8090 and at the four prefixes above.
 
+### 6. Service URLs in mosip-config
+
+Only the `identity` chart is installed, so the cluster has one Service: `identity` in the `idrepo` namespace. The `vid`, `credential`, and `credentialrequest` Services from `develop` no longer exist. Every base URL in `mosip-config` that named them must point at the identity Service, or the hostname will not resolve.
+
+| Key (in `application-default.properties` or the env profile) | `develop` value | Value on this branch |
+|---|---|---|
+| `mosip.idrepo.identity.url` | `http://identity.idrepo` | `http://identity.idrepo` (unchanged) |
+| `mosip.idrepo.vid.url` | `http://vid.idrepo` | `http://identity.idrepo` |
+| `mosip.idrepo.credrequest.generator.url` | `http://credentialrequest.idrepo` | `http://identity.idrepo` |
+| `mosip.idrepo.credential.service.url` | `http://credential.idrepo` | `http://identity.idrepo` |
+
+The ports and paths do not change: the Service listens on port 80 and forwards to 8090, and each path still carries its old prefix (section 1).
+
+These base URLs are not only used by other modules. The consolidated service also calls itself over HTTP through them:
+
+| Derived key (`id-repository-default.properties`) | Base URL | Used by |
+|---|---|---|
+| `mosip.idrepo.draft-vid.rest.uri` (`/idrepository/v1/draft/vid`) | `mosip.idrepo.vid.url` | publish draft (`VidDraftHelper.generateDraftVid`) |
+| `mosip.idrepo.vid-service.rest.uri` (`/idrepository/v1/vid/uin/{uin}`) | `mosip.idrepo.vid.url` | identity update, VID lookup by UIN |
+| `mosip.idrepo.retrieve-uin-by-vid.rest.uri` (`/idrepository/v1/vid/{vid}`) | `mosip.idrepo.vid.url` | identity retrieve by VID |
+| `mosip.idrepo.update-vid.rest.uri` (`/idrepository/v1/vid/{vid}`) | `mosip.idrepo.vid.url` | VID status update on UIN status change |
+| `mosip.idrepo.credential.request.rest.uri` (`/v1/credentialrequest/requestgenerator`) | `mosip.idrepo.credrequest.generator.url` | credential issuance on identity add / update |
+| `mosip.idrepo.credential.cancel-request.rest.uri` (`/v1/credentialrequest/cancel/{requestId}`) | `mosip.idrepo.credrequest.generator.url` | cancelling pending credential requests |
+
+Other modules read the same base URLs:
+
+* Registration Processor: `CREATEVID`, `GETUINBYVID`, `GETVIDSBYUIN` (VID) and `IDENTITY`.
+* Resident: `IDREPO_VID`, `IDREPO_IDENTITY`.
+* Credential service documents: `GENERATE_VID`, `RETRIEVE_VID`, `mosip.credential.service.vercred.id.url`.
+* IDA: `cred-request-service-get-request-ids.rest.uri`, `cred-request-service-retrigger-cred-issuance.rest.uri`.
+* Digital card: `CREDENTIAL_REQ_URL`, `CREDENTIAL_STATUS_URL`.
+
+There are two ways to migrate an environment:
+
+1. **Change the base URLs (recommended).** Set the three keys above to `http://identity.idrepo` in the environment's `mosip-config`. One change fixes this service and every caller.
+2. **Keep the old hostnames.** Add Services named `vid`, `credential`, and `credentialrequest` in the `idrepo` namespace that select the identity pods, or `ExternalName` Services pointing at `identity.idrepo.svc.cluster.local`. Use this when several environments share one `mosip-config` branch that still serves `develop` deployments.
+
+Check every profile file the environment loads (`application-default.properties` plus profiles such as `application-mosipid.properties`, `application-mock.properties`, `application-insurance.properties`, `application-injiweb.properties`). Each of those repeats the old hostnames, and the active profile overrides the default.
+
 ---
 
 ## What did not change
@@ -133,6 +172,43 @@ A schema change still lands in `db_scripts`, `db_upgrade_scripts`, and `db_relea
 * **Config collisions.** See section 4. A property added for one old service can now override the shared default for every API in the process.
 * **Gateway.** All four prefixes must route to the `identity` Service. A route left pointed at the removed `vid`, `credential`, or `credentialrequest` Service will 404.
 * **Health.** Cluster probes belong on `/idrepository/v1/identity/actuator/health` of the single pod.
+* **Service URLs.** Base URLs that still name `vid.idrepo`, `credential.idrepo`, or `credentialrequest.idrepo` fail DNS, including the service's own calls to itself. See section 6.
+
+---
+
+## Troubleshooting
+
+### `IDR-VID-002 Failed to generate VID` on publish draft
+
+Seen on a new environment with the consolidated image and an unchanged `mosip-config`. Registration Processor calls `GET /idrepository/v1/identity/draft/publish/{registrationId}` and gets `IDR-VID-002`.
+
+The identity log shows this sequence:
+
+```text
+RestHelper - httpExchange - POST http://vid.idrepo/idrepository/v1/draft/vid
+WebClientRequestException: Failed to resolve 'vid.idrepo' [A(1)]
+Caused by: java.net.UnknownHostException: Failed to resolve 'vid.idrepo' [A(1)]
+Caused by: io.netty.resolver.dns.DnsErrorCauseException: Query failed with NXDOMAIN
+IdRepoRetryException: IDR-IDC-004 --> Unknown error occurred
+  at ...VidDraftHelper.generateDraftVid(VidDraftHelper.java:64)
+  at ...IdRepoDraftServiceImpl.publishDraftInTransaction(IdRepoDraftServiceImpl.java:431)
+IdRepoDraftController - publishDraft - IDR-VID-002 --> Failed to generate VID
+```
+
+How to read it:
+
+* `NXDOMAIN` means the cluster has no Service called `vid` in the `idrepo` namespace. That Service was removed with the `vid` chart.
+* `IDR-IDC-004` is how `RestHelper` reports a transport failure. The retry aspect repeats the call, so the code appears many times per request. It is not a role or token problem here.
+* `IDR-VID-002` is the final error that publish draft returns after the draft VID call fails.
+* Calls to keymanager, auditmanager, idgenerator, masterdata, and partner management succeed in the same log, which narrows the failure to the one hostname.
+
+Fix: set `mosip.idrepo.vid.url=http://identity.idrepo` in the environment's `mosip-config`, or add a `vid` Service alias (section 6). Restart the pod afterwards; the URLs are read at startup.
+
+The same pattern with `credentialrequest.idrepo` or `credential.idrepo` in the log means `mosip.idrepo.credrequest.generator.url` or `mosip.idrepo.credential.service.url` still has its `develop` value.
+
+### `The specified key does not exist` from `S3Adapter`
+
+Logged at ERROR by Khazana when an object lookup misses. During draft and identity flows it is expected for documents that were never uploaded, and it does not fail the request by itself. Treat it as a problem only if the request also returns an error that mentions object store or biometric/document retrieval.
 
 ```mermaid
 flowchart LR
