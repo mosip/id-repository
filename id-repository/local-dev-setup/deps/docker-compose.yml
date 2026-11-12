@@ -138,7 +138,8 @@ services:
 
   # Object store for id-repo biometrics/documents (credentials use static WireMock datashare stubs)
   minio:
-    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    # minio/minio and minio/mc are no longer published on Docker Hub; pgsty/* are community builds of the same server and client.
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     container_name: local_minio
     ports:
       - "9000:9000"
@@ -155,7 +156,7 @@ services:
       start_period: 10s
 
   minio-init:
-    image: minio/mc:latest
+    image: pgsty/mc:RELEASE.2026-11-12T00-00-00Z
     container_name: local_minio_init
     depends_on:
       minio:

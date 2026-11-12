@@ -7,7 +7,7 @@ deploy/
 ├─ idrepo/install.sh [kubeconfig]  NS idrepo, Istio label, copy CMs, saltgen Job, then identity (preferred)
 ├─ idrepo/delete.sh · restart.sh   teardown · rolling restart
 ├─ idrepo-apitestrig/              cluster API-test rig (values.yaml)
-├─ credential-feeder/              legacy; use id-repository-service
+├─ credential-feeder/              legacy scripts; feeder code moved to mosip-utilities, not installed by idrepo/install.sh
 └─ copy_cm_func.sh                 copies global, artifactory-share, config-server-share
 ```
 
