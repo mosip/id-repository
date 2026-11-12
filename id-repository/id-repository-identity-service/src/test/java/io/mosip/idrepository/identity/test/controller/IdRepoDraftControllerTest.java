@@ -45,6 +45,7 @@ import io.mosip.idrepository.identity.dto.UpdateDraftUinDataRequestDto;
 
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.INVALID_INPUT_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -493,5 +494,94 @@ public class IdRepoDraftControllerTest {
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorCode(), e.getErrorCode());
 			assertEquals(IdRepoErrorConstants.UNKNOWN_ERROR.getErrorMessage(), e.getErrorText());
 		}
+	}
+
+	@Test
+	public void testUpdateDraftV2PassesVerificationObjectsAndRegistrationIdToService() throws IdRepoAppException {
+		when(draftService.updateDraftV2(any(), any())).thenReturn(new IdResponseDTO());
+		io.mosip.idrepository.core.dto.VerificationMetadata metadata = new io.mosip.idrepository.core.dto.VerificationMetadata();
+		metadata.setTrustFramework("internal");
+		metadata.setVerificationProcess("otp_verified");
+		metadata.setClaims(java.util.List.of("phone"));
+		RequestV2DTO body = new RequestV2DTO();
+		body.setVerifiedAttributes(java.util.List.of(metadata));
+		IdRequestV2DTO idRequest = new IdRequestV2DTO();
+		idRequest.setRequest(body);
+
+		controller.updateDraftV2("10001100770000320200720094735", idRequest, errors);
+
+		org.mockito.ArgumentCaptor<IdRequestDTO> captor = org.mockito.ArgumentCaptor.forClass(IdRequestDTO.class);
+		Mockito.verify(draftService).updateDraftV2(Mockito.eq("10001100770000320200720094735"), captor.capture());
+		RequestDTO sent = captor.getValue().getRequest();
+		assertEquals("10001100770000320200720094735", sent.getRegistrationId());
+		assertEquals(java.util.List.of(metadata), sent.getVerifiedAttributesMetadata());
+		assertNull(sent.getVerifiedAttributes());
+		Mockito.verify(validator).validateVerificationMetadata(java.util.List.of(metadata));
+	}
+
+	@Test
+	public void testUpdateDraftV2WithoutRequestBodyStillSetsRegistrationId() throws IdRepoAppException {
+		when(draftService.updateDraftV2(any(), any())).thenReturn(new IdResponseDTO());
+		controller.updateDraftV2("10001100770000320200720094735", new IdRequestV2DTO(), errors);
+		org.mockito.ArgumentCaptor<IdRequestDTO> captor = org.mockito.ArgumentCaptor.forClass(IdRequestDTO.class);
+		Mockito.verify(draftService).updateDraftV2(Mockito.eq("10001100770000320200720094735"), captor.capture());
+		assertEquals("10001100770000320200720094735", captor.getValue().getRequest().getRegistrationId());
+	}
+
+	@Test
+	public void testUpdateDraftV2InvalidVerificationMetadataIsRejectedBeforeService() throws IdRepoAppException {
+		Mockito.doThrow(new IdRepoAppException(IdRepoErrorConstants.INVALID_INPUT_PARAMETER))
+				.when(validator).validateVerificationMetadata(any());
+		IdRequestV2DTO idRequest = new IdRequestV2DTO();
+		idRequest.setRequest(new RequestV2DTO());
+		try {
+			controller.updateDraftV2("10001100770000320200720094735", idRequest, errors);
+			org.junit.Assert.fail("expected IdRepoAppException");
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+		}
+		Mockito.verify(draftService, Mockito.never()).updateDraftV2(any(), any());
+	}
+
+	@Test
+	public void testIdRequestV2ToLegacyRequestCopiesAllFields() {
+		io.mosip.idrepository.core.dto.VerificationMetadata metadata = new io.mosip.idrepository.core.dto.VerificationMetadata();
+		RequestV2DTO body = new RequestV2DTO();
+		body.setStatus("ACTIVATED");
+		body.setIdentity(java.util.Map.of("phone", "1"));
+		body.setDocuments(new java.util.ArrayList<>());
+		body.setRegistrationId("rid");
+		body.setUin("uin");
+		body.setBiometricReferenceId("bio");
+		body.setVerifiedAttributes(java.util.List.of(metadata));
+		IdRequestV2DTO v2 = new IdRequestV2DTO();
+		v2.setId("mosip.id.update");
+		v2.setVersion("v1");
+		v2.setMetadata("meta");
+		v2.setRequest(body);
+
+		IdRequestDTO legacy = v2.toLegacyRequest();
+
+		assertEquals("mosip.id.update", legacy.getId());
+		assertEquals("v1", legacy.getVersion());
+		assertEquals("meta", legacy.getMetadata());
+		RequestDTO request = legacy.getRequest();
+		assertEquals("ACTIVATED", request.getStatus());
+		assertEquals(body.getIdentity(), request.getIdentity());
+		assertEquals(body.getDocuments(), request.getDocuments());
+		assertEquals("rid", request.getRegistrationId());
+		assertEquals("uin", request.getUin());
+		assertEquals("bio", request.getBiometricReferenceId());
+		assertEquals(java.util.List.of(metadata), request.getVerifiedAttributesMetadata());
+		assertNull(request.getVerifiedAttributes());
+	}
+
+	@Test
+	public void testIdRequestV2ToLegacyRequestWithoutBody() {
+		IdRequestV2DTO v2 = new IdRequestV2DTO();
+		v2.setId("mosip.id.update");
+		IdRequestDTO legacy = v2.toLegacyRequest();
+		assertEquals("mosip.id.update", legacy.getId());
+		assertNull(legacy.getRequest());
 	}
 }

@@ -8,6 +8,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -15,6 +16,7 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -639,4 +641,78 @@ public class IdRequestValidatorTest {
 		});
 	}
 
+	private io.mosip.idrepository.core.dto.VerificationMetadata verification(String framework, String process,
+			List<String> claims) {
+		io.mosip.idrepository.core.dto.VerificationMetadata metadata = new io.mosip.idrepository.core.dto.VerificationMetadata();
+		metadata.setTrustFramework(framework);
+		metadata.setVerificationProcess(process);
+		metadata.setClaims(claims);
+		return metadata;
+	}
+
+	private void assertInvalidVerification(String expectedField,
+			io.mosip.idrepository.core.dto.VerificationMetadata... entries) {
+		try {
+			validator.validateVerificationMetadata(Arrays.asList(entries));
+			fail("Expected IdRepoAppException for " + expectedField);
+		} catch (IdRepoAppException e) {
+			assertEquals(IdRepoErrorConstants.INVALID_INPUT_PARAMETER.getErrorCode(), e.getErrorCode());
+			assertTrue(e.getErrorText().contains(expectedField));
+		}
+	}
+
+	@Test
+	public void testValidateVerificationMetadataNullListIsAccepted() throws IdRepoAppException {
+		validator.validateVerificationMetadata(null);
+	}
+
+	@Test
+	public void testValidateVerificationMetadataEmptyListIsAccepted() throws IdRepoAppException {
+		validator.validateVerificationMetadata(new ArrayList<>());
+	}
+
+	@Test
+	public void testValidateVerificationMetadataValidEntries() throws IdRepoAppException {
+		validator.validateVerificationMetadata(List.of(
+				verification("internal", "otp_verified", List.of("phone", "email")),
+				verification("kyc", "manual", List.of("fullName_1"))));
+	}
+
+	@Test
+	public void testValidateVerificationMetadataNullEntry() {
+		assertInvalidVerification("verifiedAttributes/0/trustFramework", (io.mosip.idrepository.core.dto.VerificationMetadata) null);
+	}
+
+	@Test
+	public void testValidateVerificationMetadataBlankTrustFramework() {
+		assertInvalidVerification("verifiedAttributes/0/trustFramework", verification(" ", "otp", List.of("phone")));
+		assertInvalidVerification("verifiedAttributes/0/trustFramework", verification(null, "otp", List.of("phone")));
+	}
+
+	@Test
+	public void testValidateVerificationMetadataBlankProcess() {
+		assertInvalidVerification("verifiedAttributes/0/verificationProcess", verification("internal", "", List.of("phone")));
+		assertInvalidVerification("verifiedAttributes/0/verificationProcess", verification("internal", null, List.of("phone")));
+	}
+
+	@Test
+	public void testValidateVerificationMetadataMissingClaims() {
+		assertInvalidVerification("verifiedAttributes/0/claims", verification("internal", "otp", null));
+		assertInvalidVerification("verifiedAttributes/0/claims", verification("internal", "otp", new ArrayList<>()));
+	}
+
+	@Test
+	public void testValidateVerificationMetadataReportsIndexOfBadEntry() {
+		assertInvalidVerification("verifiedAttributes/1/claims",
+				verification("internal", "otp", List.of("phone")), verification("internal", "otp", null));
+	}
+
+	@Test
+	public void testValidateVerificationMetadataRejectsClaimsThatAreNotPlainFieldNames() {
+		for (String bad : new String[] { "", " ", "a..b", "$..*", "a.b", "['x']", "a b", "[?(@.x)]", "a-b" }) {
+			assertInvalidVerification("verifiedAttributes/0/claims", verification("internal", "otp", List.of("phone", bad)));
+		}
+		assertInvalidVerification("verifiedAttributes/0/claims",
+				verification("internal", "otp", Arrays.asList("phone", null)));
+	}
 }

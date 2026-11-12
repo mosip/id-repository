@@ -2894,4 +2894,167 @@ public class IdRepoServiceTest {
 		String result = service.getRidByIndividualId("1234567890", IdType.UIN);
 		assertNull(result);
 	}
+
+	private com.jayway.jsonpath.DocumentContext jacksonDoc(String json) {
+		com.jayway.jsonpath.Configuration cfg = com.jayway.jsonpath.Configuration.builder()
+				.jsonProvider(new com.jayway.jsonpath.spi.json.JacksonJsonProvider())
+				.mappingProvider(new com.jayway.jsonpath.spi.mapper.JacksonMappingProvider()).build();
+		return com.jayway.jsonpath.JsonPath.using(cfg).parse(json);
+	}
+
+	private io.mosip.idrepository.core.dto.VerificationMetadata verification(String framework, String process,
+			String... claims) {
+		io.mosip.idrepository.core.dto.VerificationMetadata metadata = new io.mosip.idrepository.core.dto.VerificationMetadata();
+		metadata.setTrustFramework(framework);
+		metadata.setVerificationProcess(process);
+		metadata.setClaims(new ArrayList<>(Arrays.asList(claims)));
+		metadata.setMetadata(new HashMap<>(Map.of("trust_framework", framework)));
+		return metadata;
+	}
+
+	private List<io.mosip.idrepository.core.dto.VerificationMetadata> storedVerifiedAttributes(
+			com.jayway.jsonpath.DocumentContext doc) {
+		return mapper.convertValue(doc.read("$.verifiedAttributes"),
+				new com.fasterxml.jackson.core.type.TypeReference<List<io.mosip.idrepository.core.dto.VerificationMetadata>>() {
+				});
+	}
+
+	private void mergeV2(List<io.mosip.idrepository.core.dto.VerificationMetadata> incoming, String requestJson,
+			String storedJson, com.jayway.jsonpath.DocumentContext[] docs) {
+		RequestDTO requestDTO = new RequestDTO();
+		requestDTO.setVerifiedAttributesMetadata(incoming);
+		docs[0] = jacksonDoc(requestJson);
+		docs[1] = jacksonDoc(storedJson);
+		ReflectionTestUtils.invokeMethod(service, "updateVerifiedAttributes", requestDTO, docs[0], docs[1]);
+	}
+
+	@Test
+	public void testUpdateVerifiedAttributesV2NoStoredEntriesUsesRequestEntries() {
+		com.jayway.jsonpath.DocumentContext[] docs = new com.jayway.jsonpath.DocumentContext[2];
+		mergeV2(List.of(verification("internal", "otp_verified", "phone")), "{\"phone\":\"123\"}", "{}", docs);
+		for (com.jayway.jsonpath.DocumentContext doc : docs) {
+			List<io.mosip.idrepository.core.dto.VerificationMetadata> result = storedVerifiedAttributes(doc);
+			assertEquals(1, result.size());
+			assertEquals("internal", result.get(0).getTrustFramework());
+			assertEquals(List.of("phone"), result.get(0).getClaims());
+		}
+	}
+
+	@Test
+	public void testUpdateVerifiedAttributesV2DropsClaimsWithoutValueAndEmptyEntries() {
+		com.jayway.jsonpath.DocumentContext[] docs = new com.jayway.jsonpath.DocumentContext[2];
+		mergeV2(List.of(verification("internal", "otp", "phone", "missing", "nullField"),
+				verification("kyc", "manual", "alsoMissing")),
+				"{\"phone\":\"1\",\"nullField\":null}", "{}", docs);
+		List<io.mosip.idrepository.core.dto.VerificationMetadata> result = storedVerifiedAttributes(docs[1]);
+		assertEquals(1, result.size());
+		assertEquals(List.of("phone"), result.get(0).getClaims());
+	}
+
+	@Test
+	public void testUpdateVerifiedAttributesV2KeepsClaimThatOnlyExistsInStoredIdentity() {
+		com.jayway.jsonpath.DocumentContext[] docs = new com.jayway.jsonpath.DocumentContext[2];
+		mergeV2(List.of(verification("internal", "otp", "email")), "{}", "{\"email\":\"a@b.c\"}", docs);
+		assertEquals(List.of("email"), storedVerifiedAttributes(docs[1]).get(0).getClaims());
+	}
+
+	@Test
+	public void testUpdateVerifiedAttributesV2ReplacesStoredEntryWithSameFrameworkAndProcessIgnoringCase() {
+		com.jayway.jsonpath.DocumentContext[] docs = new com.jayway.jsonpath.DocumentContext[2];
+		String stored = "{\"phone\":\"1\",\"verifiedAttributes\":[{\"trustFramework\":\"Internal\","
+				+ "\"verificationProcess\":\"OTP_Verified\",\"claims\":[\"phone\"],\"metadata\":{}}]}";
+		mergeV2(List.of(verification("internal", "otp_verified", "phone")), "{\"phone\":\"2\"}", stored, docs);
+		List<io.mosip.idrepository.core.dto.VerificationMetadata> result = storedVerifiedAttributes(docs[1]);
+		assertEquals(1, result.size());
+		assertEquals("internal", result.get(0).getTrustFramework());
+		assertEquals(result, storedVerifiedAttributes(docs[0]));
+	}
+
+	@Test
+	public void testUpdateVerifiedAttributesV2KeepsOtherStoredEntryOnlyForClaimsNotInRequest() {
+		com.jayway.jsonpath.DocumentContext[] docs = new com.jayway.jsonpath.DocumentContext[2];
+		String stored = "{\"phone\":\"1\",\"email\":\"a@b.c\",\"verifiedAttributes\":["
+				+ "{\"trustFramework\":\"kyc\",\"verificationProcess\":\"manual\",\"claims\":[\"phone\",\"email\"]},"
+				+ "{\"trustFramework\":\"old\",\"verificationProcess\":\"old\",\"claims\":[\"phone\"]}]}";
+		mergeV2(List.of(verification("internal", "otp", "phone")), "{\"phone\":\"2\"}", stored, docs);
+		List<io.mosip.idrepository.core.dto.VerificationMetadata> result = storedVerifiedAttributes(docs[1]);
+		assertEquals(2, result.size());
+		assertEquals("internal", result.get(0).getTrustFramework());
+		assertEquals("kyc", result.get(1).getTrustFramework());
+		assertEquals(List.of("email"), result.get(1).getClaims());
+	}
+
+	@Test
+	public void testUpdateVerifiedAttributesV2ConvertsStoredLegacyClaimNames() {
+		com.jayway.jsonpath.DocumentContext[] docs = new com.jayway.jsonpath.DocumentContext[2];
+		String stored = "{\"phone\":\"1\",\"email\":\"a@b.c\",\"verifiedAttributes\":[\"phone\",\"email\"]}";
+		mergeV2(List.of(verification("internal", "otp", "phone")), "{\"phone\":\"2\"}", stored, docs);
+		List<io.mosip.idrepository.core.dto.VerificationMetadata> result = storedVerifiedAttributes(docs[1]);
+		assertEquals(2, result.size());
+		assertEquals("NA", result.get(1).getTrustFramework());
+		assertEquals("NA", result.get(1).getVerificationProcess());
+		assertEquals(List.of("email"), result.get(1).getClaims());
+		assertNotNull(result.get(1).getMetadata().get("time"));
+	}
+
+	@Test
+	public void testUpdateVerifiedAttributesV2IgnoresEmptyOrNullStoredValue() {
+		for (String stored : new String[] { "{\"verifiedAttributes\":[]}", "{\"verifiedAttributes\":null}" }) {
+			com.jayway.jsonpath.DocumentContext[] docs = new com.jayway.jsonpath.DocumentContext[2];
+			mergeV2(List.of(verification("internal", "otp", "phone")), "{\"phone\":\"2\"}", stored, docs);
+			assertEquals(1, storedVerifiedAttributes(docs[1]).size());
+		}
+	}
+
+	@Test
+	public void testUpdateVerifiedAttributesV2WithNullClaimsDropsEntry() {
+		com.jayway.jsonpath.DocumentContext[] docs = new com.jayway.jsonpath.DocumentContext[2];
+		io.mosip.idrepository.core.dto.VerificationMetadata noClaims = new io.mosip.idrepository.core.dto.VerificationMetadata();
+		noClaims.setTrustFramework("internal");
+		noClaims.setVerificationProcess("otp");
+		mergeV2(List.of(noClaims), "{\"phone\":\"1\"}", "{}", docs);
+		assertTrue(storedVerifiedAttributes(docs[1]).isEmpty());
+	}
+
+	@Test
+	public void testUpdateVerifiedAttributesV2DoesNotChangeRequestObjects() {
+		io.mosip.idrepository.core.dto.VerificationMetadata original = verification("internal", "otp", "phone", "missing");
+		com.jayway.jsonpath.DocumentContext[] docs = new com.jayway.jsonpath.DocumentContext[2];
+		mergeV2(List.of(original), "{\"phone\":\"1\"}", "{}", docs);
+		assertEquals(List.of("phone", "missing"), original.getClaims());
+	}
+
+	@Test
+	public void testAddIdentityWithV2VerifiedAttributesStoresVerificationObjects() throws Exception {
+		Uin uinObj = new Uin();
+		uinObj.setUin("1234");
+		uinObj.setUinRefId("1234");
+		uinObj.setStatusCode(ACTIVATED);
+		uinObj.setUinData("{}".getBytes());
+		RequestDTO req = new RequestDTO();
+		req.setIdentity(mapper.readValue("{\"phone\":\"123\",\"email\":\"a@b.c\"}", ObjectNode.class));
+		req.setRegistrationId("27841457360002620190730095024");
+		req.setVerifiedAttributesMetadata(List.of(verification("internal", "otp", "phone", "notThere")));
+		request.setRequest(req);
+		when(uinRepo.existsByUinHash(Mockito.any())).thenReturn(false);
+		when(uinRepo.existsByRegId(Mockito.any())).thenReturn(false);
+		ArgumentCaptor<Uin> captureArg = ArgumentCaptor.forClass(Uin.class);
+		when(uinEncryptSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("7C9JlRD32RnFTzAmeTfIzg	");
+		when(uinHashSaltRepo.retrieveSaltById(Mockito.anyInt())).thenReturn("AG7JQI1HwFp_cI_DcdAQ9A");
+		when(uinRepo.save(Mockito.any())).thenReturn(uinObj);
+		IdRepoSecurityManager securityManagerMock = mock(IdRepoSecurityManager.class);
+		ReflectionTestUtils.setField(service, "securityManager", securityManagerMock);
+		when(securityManagerMock.getIdHashWithSaltModuloByPlainIdHash(Mockito.anyString(), Mockito.any()))
+				.thenReturn("375848393846348345");
+
+		service.addIdentity(request, "1234");
+		verify(uinRepo).save(captureArg.capture());
+		Map<?, ?> saved = mapper.readValue(captureArg.getValue().getUinData(), Map.class);
+		List<?> verified = (List<?>) saved.get("verifiedAttributes");
+		assertEquals(1, verified.size());
+		Map<?, ?> entry = (Map<?, ?>) verified.get(0);
+		assertEquals("internal", entry.get("trustFramework"));
+		assertEquals(List.of("phone"), entry.get("claims"));
+		assertEquals("123", saved.get("phone"));
+	}
 }
