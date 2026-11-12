@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.0</version>
+		<version>4.1.2</version>
 		<relativePath />
 	</parent>
 
@@ -30,8 +30,8 @@
 		<!-- ── Java ─────────────────────────────────────────────────────────── -->
 		<java.version>21</java.version>
 
-		<!-- ── Spring (Boot parent is 4.1.0; Cloud + docs pinned here) ─────── -->
-		<spring-cloud.version>2025.1.2</spring-cloud.version>
+		<!-- ── Spring (Boot parent is 4.1.2; Cloud + docs pinned here) ─────── -->
+		<spring-cloud.version>2025.1.4</spring-cloud.version>
 		<springdoc.openapi.version>3.0.1</springdoc.openapi.version>
 
 		<!-- ── Maven plugins & build tooling ───────────────────────────────── -->
@@ -70,9 +70,13 @@
 		<jaxb.runtime.version>2.3.9</jaxb.runtime.version>
 		<logstash.logback.encoder.version>9.0</logstash.logback.encoder.version>
 		<powermock.version>2.0.9</powermock.version>
-		<!-- Jackson 2.x: annotations line is 2.21 (no patch releases); databind carries the patch -->
-		<jackson.annotations.version>2.21</jackson.annotations.version>
-		<jackson.databind.version>2.21.4</jackson.databind.version>
+		<!-- Jackson 2.x: Boot 4 defaults to Jackson 3; we stay on 2.x for MOSIP/kernel ObjectMapper.
+		     jackson-2-bom.version overrides spring-boot-dependencies so modules (afterburner, jsr310)
+		     match core/databind. Annotations has no patch line. -->
+		<jackson-2-bom.version>2.22.4</jackson-2-bom.version>
+		<jackson.annotations.version>2.22</jackson.annotations.version>
+		<jackson.core.version>2.22.4</jackson.core.version>
+		<jackson.databind.version>2.22.4</jackson.databind.version>
 
 		<!-- ── MOSIP repositories (external libs — no kernel/commons BOM) ──── -->
 		<!-- Must match ${project.version} so reactor builds use local id-repository-core,
@@ -92,7 +96,7 @@
 	</properties>
 	<dependencyManagement>
 		<dependencies>
-			<!-- Align Jackson 2.x annotations with databind (kernel-auth-adapter shades older annotations) -->
+			<!-- Align Jackson 2.x (kernel-auth-adapter shades older annotations) -->
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-annotations</artifactId>
@@ -100,10 +104,15 @@
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-core</artifactId>
+				<version>${jackson.core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
 				<version>${jackson.databind.version}</version>
 			</dependency>
-			<!-- Spring Cloud aligned with Boot 4.1.0 -->
+			<!-- Spring Cloud aligned with Boot 4.1.x -->
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>

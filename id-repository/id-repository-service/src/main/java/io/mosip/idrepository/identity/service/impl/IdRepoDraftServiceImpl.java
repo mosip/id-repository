@@ -73,8 +73,10 @@ import io.mosip.idrepository.core.util.DataValidationUtil;
 import io.mosip.idrepository.identity.entity.Uin;
 import io.mosip.idrepository.identity.entity.UinBiometric;
 import io.mosip.idrepository.identity.entity.UinBiometricDraft;
+import io.mosip.idrepository.identity.entity.UinBiometricHistory;
 import io.mosip.idrepository.identity.entity.UinDocument;
 import io.mosip.idrepository.identity.entity.UinDocumentDraft;
+import io.mosip.idrepository.identity.entity.UinDocumentHistory;
 import io.mosip.idrepository.identity.entity.UinDraft;
 import io.mosip.idrepository.identity.helper.IdRepoServiceHelper;
 import io.mosip.idrepository.identity.helper.VidDraftHelper;
@@ -1642,8 +1644,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 
 	/**
 	 * Saves the draft's biometric and document rows as live {@code uin_biometric} and
-	 * {@code uin_document} rows of the published identity. Rows that already exist (a
-	 * retried publish) are logged and skipped.
+	 * {@code uin_document} rows of the published identity, plus matching
+	 * {@code uin_biometric_h} / {@code uin_document_h} history rows. Live rows that
+	 * already exist (a retried publish) are logged and skipped; history is still written.
 	 *
 	 * @param draft     draft whose file rows are published
 	 * @param uinObject live identity the rows are attached to
@@ -1664,6 +1667,14 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						PUBLISH_DRAFT, "Live bio rows already exist (retry) | error=" + e.getMessage());
 			}
+			// History was missing on draft publish (#1712 / PR #1714); live add/update already wrote it.
+			uinBiometricList.forEach(bio -> uinBioHRepo.save(new UinBiometricHistory(
+					bio.getUinRefId(), DateUtils2.getUTCCurrentDateTime(),
+					bio.getBioFileId(), bio.getBiometricFileType(),
+					bio.getBiometricFileName(), bio.getBiometricFileHash(),
+					bio.getLangCode(), bio.getCreatedBy(), bio.getCreatedDateTime(),
+					bio.getUpdatedBy(), bio.getUpdatedDateTime(),
+					bio.getIsDeleted(), bio.getDeletedDateTime())));
 		}
 
 		List<UinDocument> uinDocumentList = draft.getDocuments() == null ? Collections.emptyList()
@@ -1681,6 +1692,13 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 				idrepoDraftLogger.info(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
 						PUBLISH_DRAFT, "Live doc rows already exist (retry) | error=" + e.getMessage());
 			}
+			uinDocumentList.forEach(doc -> uinDocHRepo.save(new UinDocumentHistory(
+					doc.getUinRefId(), DateUtils2.getUTCCurrentDateTime(),
+					doc.getDoccatCode(), doc.getDoctypCode(), doc.getDocId(),
+					doc.getDocName(), doc.getDocfmtCode(), doc.getDocHash(),
+					doc.getLangCode(), doc.getCreatedBy(), doc.getCreatedDateTime(),
+					doc.getUpdatedBy(), doc.getUpdatedDateTime(),
+					doc.getIsDeleted(), doc.getDeletedDateTime())));
 		}
 	}
 
