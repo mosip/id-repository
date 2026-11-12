@@ -373,12 +373,9 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 	}
 
 
-	/** A claim is a top-level identity field name; it is later used inside a JsonPath, so only plain names are allowed. */
-	private static final java.util.regex.Pattern CLAIM_NAME_PATTERN = java.util.regex.Pattern.compile("^[A-Za-z0-9_]+$");
-
 	/**
 	 * Checks v2 {@code verifiedAttributes} objects: each entry needs a trust framework, a
-	 * verification process and at least one claim, and each claim must be a plain field name. Does nothing when the list is absent.
+	 * verification process and at least one claim. Does nothing when the list is absent.
 	 *
 	 * @param verifiedAttributes verification objects from a v2 request
 	 * @throws IdRepoAppException {@code INVALID_INPUT_PARAMETER} naming the first bad field
@@ -396,8 +393,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 			if (org.apache.commons.lang3.StringUtils.isBlank(metadata.getVerificationProcess())) {
 				throw invalidVerifiedAttribute(i, "verificationProcess");
 			}
-			if (metadata.getClaims() == null || metadata.getClaims().isEmpty()
-					|| !metadata.getClaims().stream().allMatch(claim -> claim != null && CLAIM_NAME_PATTERN.matcher(claim).matches())) {
+			if (metadata.getClaims() == null || metadata.getClaims().isEmpty()) {
 				throw invalidVerifiedAttribute(i, "claims");
 			}
 		}

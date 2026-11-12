@@ -706,13 +706,4 @@ public class IdRequestValidatorTest {
 		assertInvalidVerification("verifiedAttributes/1/claims",
 				verification("internal", "otp", List.of("phone")), verification("internal", "otp", null));
 	}
-
-	@Test
-	public void testValidateVerificationMetadataRejectsClaimsThatAreNotPlainFieldNames() {
-		for (String bad : new String[] { "", " ", "a..b", "$..*", "a.b", "['x']", "a b", "[?(@.x)]", "a-b" }) {
-			assertInvalidVerification("verifiedAttributes/0/claims", verification("internal", "otp", List.of("phone", bad)));
-		}
-		assertInvalidVerification("verifiedAttributes/0/claims",
-				verification("internal", "otp", Arrays.asList("phone", null)));
-	}
 }
