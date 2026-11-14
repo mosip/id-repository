@@ -2119,6 +2119,35 @@ public class IdRepoDraftServiceImplTest {
 		verify(uinDraftRepo).flush();
 	}
 
+	// #1617: a LOST draft stamped before any updateDraftV2 call has no uinData yet. This
+	// used to fail with IDR-IDC-004 (NullPointerException); the live identity is copied instead.
+	@Test
+	public void should_copyLiveIdentity_when_updateDraftUinData_draftUinDataIsNull()
+			throws IdRepoAppException, IOException {
+		UinDraft draft = buildMinimalDraft();
+		draft.setUinHash(null);
+		draft.setUinData(null);
+		when(uinDraftRepo.findByRegId(anyString())).thenReturn(Optional.of(draft));
+		when(uinRepo.existsByUinHash(any())).thenReturn(true);
+		Uin liveUin = new Uin();
+		liveUin.setUinData("{\"UIN\":\"274390482564\",\"email\":\"live@mosip.net\"}".getBytes());
+		when(uinRepo.findByUinHash(any())).thenReturn(Optional.of(liveUin));
+		when(securityManager.getSaltKeyForId(anyString())).thenReturn(1234);
+		when(uinEncryptSaltRepo.retrieveSaltById(anyInt())).thenReturn("YWJj");
+		when(securityManager.encryptWithSalt(any(), any(), any())).thenReturn("encrypted".getBytes());
+		when(uinHashSaltRepo.retrieveSaltById(anyInt())).thenReturn("hashSalt");
+		when(securityManager.hashwithSalt(any(), any())).thenReturn("some-hash");
+		when(securityManager.hash(any())).thenReturn("data-hash");
+
+		IdResponseDTO response = idRepoServiceImpl.updateDraftUinData("REG123", "274390482564");
+
+		assertEquals("DRAFTED", response.getResponse().getStatus());
+		assertEquals("1234_some-hash", draft.getUinHash());
+		assertArrayEquals(liveUin.getUinData(), draft.getUinData());
+		assertEquals("data-hash", draft.getUinDataHash());
+		verify(uinDraftRepo).flush();
+	}
+
 	// ── updateDraftV2 ────────────────────────────────────────────────────────
 
 	@Test
