@@ -905,8 +905,7 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 				.jsonProvider(new JacksonJsonProvider())
 				.mappingProvider(new JacksonMappingProvider())
 				.build();
-		// A LOST draft stamped before any updateDraftV2 call has no identity data yet.
-		// Treat it as an empty identity so the live data fills every field.
+		// If the draft has no data, use an empty JSON and backfill it from the live UIN data.
 		String draftIdentity = Objects.isNull(draft.getUinData()) ? "{}" : new String(draft.getUinData());
 		DocumentContext inputData = JsonPath.using(cfg).parse(draftIdentity);
 		DocumentContext dbData    = JsonPath.using(cfg).parse(new String(liveUin.getUinData()));
