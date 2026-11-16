@@ -901,18 +901,14 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 		if (Objects.isNull(liveUin.getUinData())) {
 			return;
 		}
-		if (Objects.isNull(draft.getUinData())) {
-			// LOST draft stamped before any updateDraftV2 call: the draft has no identity
-			// data yet, so there is nothing to merge. Take the live identity as it is.
-			draft.setUinData(liveUin.getUinData());
-			draft.setUinDataHash(securityManager.hash(draft.getUinData()));
-			return;
-		}
 		Configuration cfg = Configuration.builder()
 				.jsonProvider(new JacksonJsonProvider())
 				.mappingProvider(new JacksonMappingProvider())
 				.build();
-		DocumentContext inputData = JsonPath.using(cfg).parse(new String(draft.getUinData()));
+		// A LOST draft stamped before any updateDraftV2 call has no identity data yet.
+		// Treat it as an empty identity so the live data fills every field.
+		String draftIdentity = Objects.isNull(draft.getUinData()) ? "{}" : new String(draft.getUinData());
+		DocumentContext inputData = JsonPath.using(cfg).parse(draftIdentity);
 		DocumentContext dbData    = JsonPath.using(cfg).parse(new String(liveUin.getUinData()));
 
 		JSONCompareResult diff = JSONCompare.compareJSON(
