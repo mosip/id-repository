@@ -381,6 +381,13 @@ public class CredentialProvider {
 			// formatting and masking the data based on request
 			for (AllowedKycDto key : sharableAttributeDemographicKeySet) {
 				String attribute = key.getSource().get(0).getAttribute();
+				if (IdRepoConstants.VERIFIED_ATTRIBUTES.equals(attribute)) {
+					Object verifiedAttributes = idResponseDto.getResponse().getVerifiedAttributes();
+					if (verifiedAttributes != null) {
+						attributesMap.put(key, verifiedAttributes);
+					}
+					continue;
+				}
 				Object object = identity.get(attribute);
 				Object formattedObject = object;
 
