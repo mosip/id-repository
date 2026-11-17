@@ -1,20 +1,25 @@
-# ID-Repository local development
+# ID Repository Local Development
 
-Run **id-repository-service** on your laptop: Docker for dependencies, JVM on the host.
+Run `id-repository-service` locally without the full MOSIP platform. Docker
+Compose runs the dependencies, and the application runs on the host.
 
-| Guide | Audience |
-|-------|----------|
-| **This README** | Startup, wipe, and every `run-idrepo-local` / stack command |
-| [`LOCAL-DEV-SETUP.md`](LOCAL-DEV-SETUP.md) | Prerequisites, DBs, troubleshooting |
-| [`AGENTS.md`](AGENTS.md) | Agent rules, WireMock stubs, failure modes |
+## Choose a setup
+
+- **Quick setup:** Follow this README to start the standard local environment
+  using the supplied scripts. Use this for normal development.
+- **Manual setup:** Follow the [developer setup guide](LOCAL-DEV-SETUP.md) to
+  configure and start the components step by step. Use this when you need to
+  understand, customize, or troubleshoot the environment.
+
+For automated API tests, see the [API test guide](../../api-test/README.md).
 
 ---
 
 ## Architecture
 
 ```text
-Docker Compose (deps only)          Host
-─────────────────────────           ────
+Docker Compose (deps/ only)         Host (local machine)
+──────────────────────────          ─────────────
 Postgres :5455                      id-repository-service :8090
 Config-server :51100
 WireMock :8082  (IAM, BioSDK, …)
@@ -23,7 +28,9 @@ Keymanager :8088
 websub-partner-ack :8085
 ```
 
-There is **no** id-repo container. Auth uses WireMock JWTs (no Keycloak). The host JVM uses profiles `default,local` with **AuthFilter on** (`mosip.auth.filter_disable=false`). API calls need a cookie (see [Call the APIs](#call-the-apis)).
+Docker runs the dependencies. The ID Repository application runs directly on
+your computer as a Java process. The local setup uses WireMock for
+authentication; API calls require an authorization cookie.
 
 ---
 
@@ -31,7 +38,16 @@ There is **no** id-repo container. Auth uses WireMock JWTs (no Keycloak). The ho
 
 JDK **21**, Maven **3.9+**, Docker Desktop (Compose V2). Details: [`LOCAL-DEV-SETUP.md`](LOCAL-DEV-SETUP.md).
 
-Host JVM also needs [`deps/additional_jars/kernel-ref-idobjectvalidator.jar`](deps/additional_jars/README.md). First `up` / `prep` fetches it (`bash run-local-stack.sh prep`). Keep [`keys/mosip-idrepo-ks.p12`](keys/README.md) — do not regenerate it after a DB wipe.
+For a Docker Desktop memory limit of 6 GB, use
+`./run-local-stack.sh up-low-mem`. The Java application also needs memory
+outside Docker.
+
+The host application also needs
+[`kernel-ref-idobjectvalidator.jar`](deps/additional_jars/README.md). The
+quick setup instructions explain how to prepare it for each platform.
+
+Keep the [Key Manager keystore](keys/README.md); it must match the static
+database seed.
 
 Run all commands below from:
 
@@ -43,35 +59,100 @@ id-repository/id-repository/local-dev-setup
 
 ---
 
-## Clean startup
+## Quick setup
 
-**Windows (cmd)** — `bash` on many PCs is WSL and does not inherit Windows `JAVA_HOME`. Prefer the `.bat`:
+Use these steps to start the standard local environment with the supplied
+scripts. Commands are run from `id-repository/local-dev-setup/` inside the
+cloned repository.
+
+### Clone the repository
+
+Skip this step if you already have the repository.
+
+```bash
+# Clone the repository.
+git clone https://github.com/mosip/id-repository.git
+
+# Enter the local setup directory.
+cd id-repository/id-repository/local-dev-setup
+```
+
+Check out the branch you intend to develop before starting the setup.
+
+### Windows
+
+On the first run, prepare the required validator JAR using Git Bash or WSL:
 
 ```bat
-cd id-repository\id-repository\local-dev-setup
+REM Prepare the required local files.
+bash run-local-stack.sh prep
+```
+
+Then start the dependencies and application from Windows Command Prompt:
+
+```bat
+REM Start the Docker dependencies.
 run-idrepo-local.bat up
+
+REM Build and start ID Repository on the host, outside Docker.
 run-idrepo-local.bat run
 ```
 
-Fresh empty DB + rebuild + start:
+The batch file uses the Windows JDK and Maven. Leave the application running
+in its terminal.
+
+### macOS / Linux / Git Bash
+
+```bash
+# Allow the scripts to run.
+chmod +x run-local-stack.sh run-idrepo-local.sh
+
+# Prepare and start the Docker dependencies.
+./run-local-stack.sh up
+
+# Build and start ID Repository on the host, outside Docker.
+./run-idrepo-local.sh run
+```
+
+The `up` command prepares the required files and starts the dependencies.
+Leave the application running in its terminal.
+
+### Verify
+
+After the application starts, open a second terminal and run:
 
 ```bat
+REM Check the application and dependencies.
+run-idrepo-local.bat smoke
+```
+
+Or on macOS / Linux / Git Bash:
+
+```bash
+# Check the application and dependencies.
+./run-idrepo-local.sh smoke
+```
+
+The smoke command checks both the application and its dependencies.
+
+### Start with empty local data
+
+**Warning:** `wipe-run` deletes the Docker volumes, including PostgreSQL and
+MinIO data, before rebuilding and starting the application.
+
+```bat
+REM Delete local Docker volumes, then rebuild and start the application.
 run-idrepo-local.bat wipe-run
 ```
 
-**macOS / Linux / Git Bash:**
+Or:
 
 ```bash
-chmod +x run-local-stack.sh run-idrepo-local.sh   # once
-./run-local-stack.sh up
-./run-idrepo-local.sh run
-# fresh DB:
+# Delete local Docker volumes, then rebuild and start the application.
 ./run-idrepo-local.sh wipe-run
 ```
 
-Leave the host JVM running in that terminal (`Ctrl+C` or `run-idrepo-local.bat stop`). Smoke and API tests use a **second** terminal.
-
-Keymanager uses the static SQL seed in `deps/init.sql` (`KM_STATIC_SEED=true`). Wait until `docker compose ps` (or `run-idrepo-local.bat smoke`) looks healthy before calling identity APIs.
+Keep `keys/mosip-idrepo-ks.p12`: it must match the static Key Manager seed.
 
 ---
 
@@ -244,13 +325,8 @@ UINs must come from `GET http://localhost:8082/v1/idgenerator/uin` — invented 
 
 ## API tests
 
-Deps + host app up, then from git clone root `api-test/`:
-
-```bash
-./run-local-smoke.sh smoke    # Windows: run-local-smoke.bat smoke
-```
-
-See [`api-test/README.md`](../../api-test/README.md). Wipe first if leftover identities cause `IDR-IDC-012`.
+For local and deployed-environment test instructions, see the
+[API test guide](../../api-test/README.md).
 
 ---
 
@@ -267,15 +343,6 @@ Use Git Bash / WSL / macOS / Linux. Windows cmd can still `bash run-local-stack.
 | `prep` | PKCS12 + validator jar (`keys-generator.jar` only if init.sql has no static seed) |
 | `build` | `mvn package` skip tests (WSL may shell out to Windows Maven) |
 | `status` / `logs` | `docker compose ps` / follow logs (default `keymanager-service`) |
-
-### 6 GB Docker Desktop (low-mem)
-
-1. Docker Desktop → Settings → Resources → Memory → **6 GB** → Apply & restart.
-2. Stop other compose projects.
-3. `./run-local-stack.sh up-low-mem` (or `wipe-low-mem` for a clean DB).
-4. Start the host app with `run-idrepo-local.*` — its heap is **extra** laptop RAM (~1–2 GB), not the container budget.
-
-Overlay: [`deps/docker-compose.low-mem.yml`](deps/docker-compose.low-mem.yml).
 
 After jar or `application-local.properties` changes, restart the **host** JVM (`stop` then `run` or `start`). Recreate WireMock only when stubs change:
 
@@ -300,7 +367,9 @@ docker compose -f docker-compose.yml -f docker-compose.low-mem.yml up -d --force
 | MinIO | `9000` / `9001` |
 | websub-partner-ack | `8085` |
 
-Swagger (host app up):
+## Swagger
+
+The application must be running to access these pages.
 
 | API | UI |
 |-----|-----|
@@ -320,7 +389,7 @@ local-dev-setup/
 ├── AGENTS.md                 ← agent rules
 ├── run-local-stack.sh        ← prep / up / wipe / smoke (bash)
 ├── run-idrepo-local.bat|.sh  ← host JVM + wipe / test / sonar
-├── keys/                     ← PKCS12 (gitignored)
+├── keys/                     ← local Key Manager keystore
 └── deps/
     ├── docker-compose.yml    ← deps only
     ├── init.sql
