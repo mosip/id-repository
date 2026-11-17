@@ -1,40 +1,46 @@
-# Postman — ID-Repository local APIs
+# Postman — ID Repository Local APIs
 
-Import into Postman:
-
-1. [`Id-Repository-Local.postman_collection.json`](Id-Repository-Local.postman_collection.json)
-2. [`Id-Repository-Local.postman_environment.json`](Id-Repository-Local.postman_environment.json)
-
-Select environment **Id-Repository-Local**.
+Use the included Postman collection to explore the local ID Repository APIs.
 
 ## Prerequisites
 
-```bash
-cd id-repository/local-dev-setup
-./run-local-stack.sh up
-./run-idrepo-local.sh
-```
+Start the dependencies and ID Repository application using the
+[local setup guide](../README.md). Keep the application running while you
+send requests.
+
+## Import the collection
+
+Import these files into Postman:
+
+1. [ID Repository collection](Id-Repository-Local.postman_collection.json)
+2. [Local environment](Id-Repository-Local.postman_environment.json)
+
+Select the **Id-Repository-Local** environment.
 
 ## Suggested order
 
-1. **00 - Auth** → `Client token (idrepo)` — copy response `Authorization` header or `response.token` into env `accessToken`
-2. **01 - Dependencies** → `Generate UIN` — set env `uin`
-3. **02 - Identity** → `Add Identity` (uses `{{uin}}`)
-4. Draft / VID / Credential folders as needed
+1. Open **00 - Auth (WireMock)** and send **Client token (idrepo)**.
+   Copy the returned token into the environment variable `accessToken`.
+2. Open **01 - Dependencies (WireMock)** and send **Generate UIN**.
+   Copy the returned UIN into the environment variable `uin`.
+3. Open **02 - Identity** and review the **Add Identity** request body.
+   Replace masked biometric data and document placeholders with suitable
+   values before sending it.
+4. Explore the draft, VID, and credential requests as needed.
 
-## Variables
+The token and UIN are not saved to the environment automatically.
 
-| Variable | Default | Role |
-|----------|---------|------|
-| `idrepoBaseUrl` | `http://localhost:8090` | Host id-repository-service |
-| `wiremockBaseUrl` | `http://localhost:8082` | IAM, idgenerator, idschema |
-| `accessToken` | _(empty)_ | JWT from auth stubs |
-| `uin` / `vid` / `registrationId` / `requestId` | placeholders | Path/body params |
+## Environment variables
 
-## Sources
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `idrepoBaseUrl` | `http://localhost:8090` | ID Repository application |
+| `wiremockBaseUrl` | `http://localhost:8082` | Local mock dependencies |
+| `accessToken` | Empty | Authentication token |
+| `uin`, `vid`, `registrationId`, `requestId` | Placeholders | Request identifiers |
 
-- TestNG report `api-test/testng-report/mosip-api-internal.local-idrepo-2026-08-20_19-59-full-report_*.html` (sample bodies)
-- JMeter `IDRepo_Test_Script_v04_jannaLocal.jmx` (endpoint inventory)
-- `api-docs/` OpenAPI (extra identity/credential paths)
+## Before sending requests
 
-Regenerate (optional): from repo, run the builder script if present under `api-test/`, or recreate from those sources.
+Review each request's URL, headers, and body. Some sample bodies contain
+masked data, document placeholders, or values such as `${utcTime}` and
+`${uin}` that may need to be replaced for the request you are sending.
