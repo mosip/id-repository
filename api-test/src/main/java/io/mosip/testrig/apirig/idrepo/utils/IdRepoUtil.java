@@ -201,7 +201,10 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
-		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("_handle")
+		// Case-insensitive: V1 names use "_handle" (lowercase), V2 names use camelCase
+		// ("ArrayHandle", "SelectedHandles"). Without this, V2 handle cases still execute on
+		// schemas with no handles and fail, while matching V1 cases are Ignored.
+		if (testCaseName.startsWith("IdRepository_") && testCaseName.toLowerCase().contains("handle")
 				&& !schemaHasAnyHandle()) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
