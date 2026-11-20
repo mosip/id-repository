@@ -25,9 +25,9 @@ public class IdRepoConfigManager extends ConfigManager{
 	 * Loads the idrepo properties file and passes its entries to {@link ConfigManager#init(Map)}.
 	 * <p>
 	 * The file is read from {@code <globalResourcePath>/config/}. Its name comes from the system
-	 * property {@code idrepo.propertiesFile} (default {@code Idrepo.properties}); when the default
-	 * file is missing, {@code IDRepo.properties} is tried. A load failure is logged and the common
-	 * configuration is still initialised, without module overrides.
+	 * property {@code idrepo.propertiesFile} (default {@code Idrepo.properties}).
+	 * If loading fails, the runner logs the error and initialises the common configuration
+	 * without module overrides.
 	 * <p>
 	 * Call after {@code AdminTestUtil.init()} and the resource extraction step, so the config
 	 * folder exists.
@@ -45,9 +45,6 @@ public class IdRepoConfigManager extends ConfigManager{
 			}
 			String resourceRoot = MosipTestRunner.getGlobalResourcePath() + "/config/";
 			File propsFile = new File(resourceRoot + requested);
-			if (!propsFile.isFile() && "Idrepo.properties".equals(requested)) {
-				propsFile = new File(resourceRoot + "IDRepo.properties");
-			}
 			LOGGER.info("Loading idrepo properties from: " + propsFile.getAbsolutePath());
 			Properties props = getproperties(propsFile.getAbsolutePath());
 			// Convert Properties to Map and add to moduleSpecificPropertiesMap

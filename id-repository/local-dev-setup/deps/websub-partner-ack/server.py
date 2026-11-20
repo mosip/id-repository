@@ -42,7 +42,7 @@ AUTH_TOKEN_URL = os.environ.get(
     "http://mock-service:8082/v1/authmanager/authenticate/clientidsecretkey",
 )
 AUTH_CLIENT_ID = os.environ.get("AUTH_CLIENT_ID", "mosip-idrepo-client")
-AUTH_SECRET_KEY = os.environ.get("AUTH_SECRET_KEY", "local-secret")
+AUTH_SECRET_KEY = os.environ.get("AUTH_SECRET_KEY", "QTGizTYN4US0XHOU")
 AUTH_APP_ID = os.environ.get("AUTH_APP_ID", "idrepo")
 NOTIFY_SECRET = os.environ.get("CREDENTIAL_STATUS_SECRET", "test")
 # Delay + poll until ISSUED is committed before STORED (avoids stale overwrite).

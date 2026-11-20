@@ -4,7 +4,7 @@ name: idrepo-local
 services:
 
   postgres:
-    image: 'postgres:bookworm'
+    image: postgres:18.7-bookworm
     container_name: local_postgres
     ports:
       - 5455:5432
@@ -24,8 +24,8 @@ services:
       start_period: 10s
 
   config-server:
-    image: mosipid/config-server:latest
-    container_name: my_config_server
+    image: mosipid/config-server@sha256:bc5ce50037d8988f807db45ee0fb19a750f6d0b17487155fca7edad0892e7eb0
+    container_name: idrepo_local_config_server
     ports:
       - "51100:51000"
     volumes:
@@ -117,7 +117,7 @@ services:
       # AuthFilter requires JWT on GET /credentialrequest/get/{id}
       - AUTH_TOKEN_URL=http://mock-service:8082/v1/authmanager/authenticate/clientidsecretkey
       - AUTH_CLIENT_ID=mosip-idrepo-client
-      - AUTH_SECRET_KEY=local-secret
+      - AUTH_SECRET_KEY=QTGizTYN4US0XHOU
       - AUTH_APP_ID=idrepo
       # Wait for ISSUED commit before STORED (avoids null credential_id race)
       - CREDENTIAL_ACK_INITIAL_DELAY_SEC=1.5
@@ -138,7 +138,7 @@ services:
 
   # Object store for id-repo biometrics/documents (credentials use static WireMock datashare stubs)
   minio:
-    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    image: bitnamilegacy/minio:2024.12.18
     container_name: local_minio
     ports:
       - "9000:9000"
@@ -146,7 +146,8 @@ services:
     environment:
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
+      MINIO_CONSOLE_PORT_NUMBER: "9001"
+    command: ["/opt/bitnami/scripts/minio/run.sh"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
@@ -155,8 +156,10 @@ services:
       start_period: 10s
 
   minio-init:
-    image: minio/mc:latest
+    image: bitnamilegacy/minio-client@sha256:00dcc4e58ada0df45bb7d9ee435af98295f96c27c3c68292ce78ec700a87b511
     container_name: local_minio_init
+    environment:
+      MC_CONFIG_DIR: /tmp/.mc
     depends_on:
       minio:
         condition: service_healthy
