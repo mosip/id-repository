@@ -4,3 +4,5 @@ logs/
 
 # Ephemeral WSL→Windows Maven launcher (created during `bash … build`, then removed)
 .wsl-mvn-build.cmd
+
+/keys/.km-local-ready
