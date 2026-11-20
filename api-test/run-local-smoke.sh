@@ -37,7 +37,7 @@ EOF
 }
 
 usage
-case "${TEST_LEVEL,,}" in
+case "$(printf '%s' "$TEST_LEVEL" | tr '[:upper:]' '[:lower:]')" in
   help|-h|--help) exit 0 ;;
   smokeandregression) TEST_LEVEL=smokeAndRegression ;;
   smoke) TEST_LEVEL=smoke ;;
