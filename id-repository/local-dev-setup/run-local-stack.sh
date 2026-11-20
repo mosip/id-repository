@@ -173,12 +173,11 @@ check_docker() {
 }
 
 compose() {
-  local args=()
   if [[ "${LOW_MEM:-}" == "1" || "${LOW_MEM:-}" == "true" ]]; then
-    args+=(-f docker-compose.yml -f docker-compose.low-mem.yml)
+    set -- -f docker-compose.yml -f docker-compose.low-mem.yml "$@"
     info "LOW_MEM=1 — using docker-compose.low-mem.yml (~3GB container budget)"
   fi
-  (cd "$COMPOSE_DIR" && docker compose "${args[@]}" "$@")
+  (cd "$COMPOSE_DIR" && docker compose "$@")
 }
 
 # ---------------------------------------------------------------------------

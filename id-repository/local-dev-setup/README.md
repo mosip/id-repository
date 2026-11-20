@@ -104,9 +104,6 @@ in its terminal.
 ### macOS / Linux / Git Bash
 
 ```bash
-# Allow the scripts to run.
-chmod +x run-local-stack.sh run-idrepo-local.sh
-
 # Prepare and start the Docker dependencies.
 ./run-local-stack.sh up
 

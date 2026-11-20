@@ -179,8 +179,10 @@ case "$CMD" in
   cleardb|clear-db|reset) CMD=wipe ;;
 esac
 
-print_help
-[[ "$CMD" == "help" ]] && exit 0
+if [[ "$CMD" == "help" ]]; then
+  print_help
+  exit 0
+fi
 echo "Selected: $CMD"
 echo
 
@@ -196,6 +198,7 @@ case "$CMD" in
   wipe)       stop_app; exec "$STACK" wipe ;;
   wipe-run)   stop_app; "$STACK" wipe; cmd_run 1 ;;
   *)
+    print_help >&2
     echo "ERROR: unknown command \"$CMD\". Use one of the commands above." >&2
     exit 1
     ;;
