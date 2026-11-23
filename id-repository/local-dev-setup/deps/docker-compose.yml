@@ -117,7 +117,7 @@ services:
       # AuthFilter requires JWT on GET /credentialrequest/get/{id}
       - AUTH_TOKEN_URL=http://mock-service:8082/v1/authmanager/authenticate/clientidsecretkey
       - AUTH_CLIENT_ID=mosip-idrepo-client
-      - AUTH_SECRET_KEY=QTGizTYN4US0XHOU
+      - AUTH_SECRET_KEY=local-secret
       - AUTH_APP_ID=idrepo
       # Wait for ISSUED commit before STORED (avoids null credential_id race)
       - CREDENTIAL_ACK_INITIAL_DELAY_SEC=1.5
