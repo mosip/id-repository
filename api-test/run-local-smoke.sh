@@ -71,7 +71,7 @@ local_default_for() {
   case "$1" in
     postgres-password) printf '%s' 'mosip123' ;;
     keycloak_Password) printf '%s' 'admin' ;;
-    mosip_idrepo_client_secret) printf '%s' 'QTGizTYN4US0XHOU' ;;
+    mosip_idrepo_client_secret) printf '%s' 'local-secret' ;;
     mosip_testrig_client_secret) printf '%s' 'local-dev-testrig-secret' ;;
     mosip_admin_client_secret|mosip_partner_client_secret|mosip_pms_client_secret|mosip_resident_client_secret|mosip_reg_client_secret|mosip_hotlist_client_secret|mosip_regproc_client_secret|mpartner_default_mobile_secret|AuthClientSecret|mosip_crvs1_client_secret) printf '%s' 'local-dev-secret' ;;
     *) return 1 ;;
