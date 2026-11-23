@@ -104,9 +104,6 @@ in its terminal.
 ### macOS / Linux / Git Bash
 
 ```bash
-# Allow the scripts to run.
-chmod +x run-local-stack.sh run-idrepo-local.sh
-
 # Prepare and start the Docker dependencies.
 ./run-local-stack.sh up
 
@@ -304,7 +301,7 @@ AuthFilter is on. Swagger Try-it and curl without a token fail with `Authorizati
 ```bat
 curl.exe -s -X POST "http://localhost:8082/v1/authmanager/authenticate/clientidsecretkey" ^
   -H "Content-Type: application/json" ^
-  -d "{\"id\":\"string\",\"version\":\"string\",\"requesttime\":\"2026-10-13T12:00:00.000Z\",\"metadata\":{},\"request\":{\"clientId\":\"mosip-idrepo-client\",\"secretKey\":\"QTGizTYN4US0XHOU\",\"appId\":\"idrepo\"}}"
+  -d "{\"id\":\"string\",\"version\":\"string\",\"requesttime\":\"2026-10-13T12:00:00.000Z\",\"metadata\":{},\"request\":{\"clientId\":\"mosip-idrepo-client\",\"secretKey\":\"local-secret\",\"appId\":\"idrepo\"}}"
 ```
 
 Copy `response.token`.
