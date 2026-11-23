@@ -25,7 +25,7 @@ services:
 
   config-server:
     image: mosipid/config-server@sha256:bc5ce50037d8988f807db45ee0fb19a750f6d0b17487155fca7edad0892e7eb0
-    container_name: idrepo_local_config_server
+    container_name: my_config_server
     ports:
       - "51100:51000"
     volumes:
