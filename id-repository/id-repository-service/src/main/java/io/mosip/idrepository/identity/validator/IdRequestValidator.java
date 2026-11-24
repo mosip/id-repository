@@ -294,6 +294,7 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 							String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), ROOT_PATH));
 				} else {
 					validateDocuments(requestMap, errors);
+					validateHandleArrayItemValues(requestMap, errors);
 					Set<String> keysToRemove =  requestMap.keySet().stream().filter(key -> !key.contentEquals(ROOT_PATH)).collect(Collectors.toSet());
 					keysToRemove.forEach(requestMap::remove);
 					if (!errors.hasErrors()) {
@@ -342,6 +343,29 @@ public class IdRequestValidator extends BaseIdRepoValidator implements Validator
 					VALIDATE_REQUEST + " InvalidIdSchemaException | IdObjectIOException " + e.getMessage());
 			errors.rejectValue(REQUEST, ID_OBJECT_PROCESSING_FAILED.getErrorCode(),
 					ID_OBJECT_PROCESSING_FAILED.getErrorMessage());
+		}
+	}
+
+	/**
+	 * Rejects schema handle array entries that are objects without a non-blank {@code value}
+	 * ({@code IDR-IDC-001} / {@code identity/{field}/{index}/value}).
+	 *
+	 * @param requestMap request body map containing {@code identity}
+	 * @param errors     binding errors to append to
+	 */
+	private void validateHandleArrayItemValues(Map<String, Object> requestMap, Errors errors) {
+		try {
+			for (String path : idRepoServiceHelper.findMissingHandleArrayItemValuePaths(requestMap)) {
+				mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR,
+						"validateHandleArrayItemValues", "MISSING " + path);
+				errors.rejectValue(REQUEST, MISSING_INPUT_PARAMETER.getErrorCode(),
+						String.format(MISSING_INPUT_PARAMETER.getErrorMessage(), path));
+			}
+		} catch (IdRepoAppException e) {
+			mosipLogger.error(IdRepoSecurityManager.getUser(), ID_REQUEST_VALIDATOR,
+					"validateHandleArrayItemValues", e.getMessage());
+			errors.rejectValue(REQUEST, INVALID_INPUT_PARAMETER.getErrorCode(),
+					String.format(INVALID_INPUT_PARAMETER.getErrorMessage(), ROOT_PATH));
 		}
 	}
 

@@ -195,11 +195,11 @@ public class IdRepoServiceImpl implements IdRepoService<IdRequestDTO, Uin> {
 
 	/** Repository of {@code uin_document_h}; receives a history row for every document change. */
 	@Autowired
-	private UinDocumentHistoryRepo uinDocHRepo;
+	protected UinDocumentHistoryRepo uinDocHRepo;
 
 	/** Repository of {@code uin_biometric_h}; receives a history row for every biometric change. */
 	@Autowired
-	private UinBiometricHistoryRepo uinBioHRepo;
+	protected UinBiometricHistoryRepo uinBioHRepo;
 
 	/** Repository of {@code uin_h}; receives a history row for every identity change. */
 	@Autowired

@@ -128,4 +128,36 @@ public class IdRepoServiceHelperHandleTest {
 		assertEquals(List.of("phone"), identity.get("selectedHandles"));
 		assertTrue(((List<?>) identity.get("selectedHandles")).contains("phone"));
 	}
+
+	@Test
+	public void testMissingValueOnArrayHandleItems() throws Exception {
+		Map<String, Object> onlyTags = new HashMap<>();
+		onlyTags.put("tags", List.of("handle"));
+		Map<String, Object> emptyValue = new HashMap<>();
+		emptyValue.put("value", "  ");
+		emptyValue.put("tags", List.of("notification"));
+		Map<String, Object> identity = new HashMap<>();
+		identity.put("IDSchemaVersion", 0.1);
+		identity.put("selectedHandles", List.of("email"));
+		identity.put("email", List.of(onlyTags, emptyValue));
+		Map<String, Object> request = Map.of("identity", identity);
+
+		List<String> missing = helper.findMissingHandleArrayItemValuePaths(request);
+
+		assertEquals(List.of("identity/email/0/value", "identity/email/1/value"), missing);
+	}
+
+	@Test
+	public void testPresentValueOnArrayHandleItems() throws Exception {
+		Map<String, Object> item = new HashMap<>();
+		item.put("value", "user@example.com");
+		item.put("tags", List.of("handle"));
+		Map<String, Object> identity = new HashMap<>();
+		identity.put("IDSchemaVersion", 0.1);
+		identity.put("selectedHandles", List.of("email"));
+		identity.put("email", List.of(item));
+		Map<String, Object> request = Map.of("identity", identity);
+
+		assertTrue(helper.findMissingHandleArrayItemValuePaths(request).isEmpty());
+	}
 }

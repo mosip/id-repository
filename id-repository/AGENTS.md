@@ -1,6 +1,6 @@
 # id-repository/ (Maven parent)
 
-Spring Boot 4.1.0, Spring Cloud 2025.1.2. Versions only in the parent POM.
+Spring Boot 4.1.2, Spring Cloud 2025.1.4. Versions only in the parent POM.
 
 ```text
 id-repository/
