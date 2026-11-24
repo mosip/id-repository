@@ -1,7 +1,7 @@
 # Official wiremock/wiremock:* images still ship Temurin 17.
 # Local-dev extensions are built for Java 21 (id-repository-parent), so this
 # thin image runs the same WireMock standalone jar on eclipse-temurin:21-jre-alpine.
-ARG WIREMOCK_BASE=wiremock/wiremock:3.13.2-alpine
+ARG WIREMOCK_BASE=wiremock/wiremock:3.13.2
 FROM ${WIREMOCK_BASE} AS upstream
 
 FROM eclipse-temurin:21-jre-alpine

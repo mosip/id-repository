@@ -613,38 +613,35 @@ public class MosipTestRunner {
 	/**
 	 * Runs, one after another, every TestNG suite file whose name contains {@code mastertestsuite}.
 	 * <p>
-	 * The suite folder is {@code <user.dir>/testNgXmlFiles} when run from the IDE or on Windows, and
+	 * The suite folder is {@code <user.dir>/testNgXmlFiles} in the IDE, on Windows, or when present, and
 	 * {@code <parent of user.dir>/mosip/testNgXmlFiles} otherwise (container layout). Reports are
 	 * written to {@code testng-report}. A missing folder is logged and nothing runs.
 	 */
 	public static void startTestRunner() {
-		File homeDir = null;
+		File workingDir = new File(System.getProperty("user.dir"));
+		File homeDir = new File(workingDir, "testNgXmlFiles");
 		String os = System.getProperty("os.name");
 		LOGGER.info(os);
-		if (getRunType().contains("IDE") || os.toLowerCase().contains("windows")) {
-			homeDir = new File(System.getProperty("user.dir") + "/testNgXmlFiles");
-			LOGGER.info("IDE :" + homeDir);
-		} else {
-			File dir = new File(System.getProperty("user.dir"));
-			homeDir = new File(dir.getParent() + "/mosip/testNgXmlFiles");
-			LOGGER.info("ELSE :" + homeDir);
+		if (!getRunType().contains("IDE") && !os.toLowerCase().contains("windows") && !homeDir.isDirectory()) {
+			homeDir = new File(workingDir.getParentFile(), "mosip/testNgXmlFiles");
 		}
-		File[] files = homeDir.listFiles();
-		if (files != null) {
-			for (File file : files) {
-				TestNG runner = new TestNG();
-				List<String> suitefiles = new ArrayList<>();
-				if (file.getName().toLowerCase().contains("mastertestsuite")) {
-					BaseTestCase.setReportName(GlobalConstants.IDREPO);
-					suitefiles.add(file.getAbsolutePath());
-					runner.setTestSuites(suitefiles);
-					System.getProperties().setProperty("testng.outpur.dir", "testng-report");
-					runner.setOutputDirectory("testng-report");
-					runner.run();
-				}
-			}
-		} else {
-			LOGGER.error("No files found in directory: " + homeDir);
+		LOGGER.info("TestNG suite directory: " + homeDir);
+		File[] suites = homeDir.listFiles(file -> {
+			String name = file.getName().toLowerCase(java.util.Locale.ROOT);
+			return file.isFile() && name.contains("mastertestsuite") && name.endsWith(".xml");
+		});
+		if (suites == null || suites.length == 0) {
+			throw new IllegalStateException("No TestNG master suite XML found in " + homeDir);
+		}
+		for (File suite : suites) {
+			TestNG runner = new TestNG();
+			List<String> suitefiles = new ArrayList<>();
+			BaseTestCase.setReportName(GlobalConstants.IDREPO);
+			suitefiles.add(suite.getAbsolutePath());
+			runner.setTestSuites(suitefiles);
+			System.getProperties().setProperty("testng.outpur.dir", "testng-report");
+			runner.setOutputDirectory("testng-report");
+			runner.run();
 		}
 	}
 

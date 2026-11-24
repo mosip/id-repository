@@ -201,7 +201,7 @@ public class IdRepoUtil extends AdminTestUtil {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
-		if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("_handle")
+		if (testCaseName.startsWith("IdRepository_") && testCaseName.toLowerCase().contains("handle")
 				&& !schemaHasAnyHandle()) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}

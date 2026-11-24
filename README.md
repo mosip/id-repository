@@ -16,23 +16,16 @@ This repository contains source code and design documents for MOSIP [ID Reposito
 - **Virtual IDs (VID):** Generation and management of revocable virtual tokens for privacy protection.
 - **Salt & Keys:** Security foundations for identity data encryption and hashing.
 
-## Services
+## Modules
 
-Identity, VID, credential request, and credential store now run in **one** HTTP service. The salt generator stays a separate one-shot Job. For detailed setup instructions, refer to each module's README:
+Identity, VID, credential request, and credential store run in **one** HTTP service. The salt generator stays a separate one-shot Job. See each module README and the [service consolidation design](docs/design/service-consolidation.md).
 
-1. **[ID Repository Service](id-repository/id-repository-service/README.md)** - The single HTTP deployable (port `8090`). It contains identity and draft, VID, credential request generator, and credential store. Callers use the same URL prefixes as before:
-
-   | Domain | URL prefix | Database |
-   |---|---|---|
-   | Identity and draft | `/idrepository/v1/identity` | `mosip_idrepo` |
-   | VID | `/idrepository/v1` (`/vid`, `/draft/vid`, …) | `mosip_idmap` |
-   | Credential store | `/v1/credentialservice` | `mosip_credential` |
-   | Credential request | `/v1/credentialrequest` | `mosip_credential` |
-
-2. **[Salt Generator](id-repository/id-repository-salt-generator/README.md)** - One-shot Job that fills `uin_hash_salt` and `uin_encrypt_salt` in `mosip_idrepo` and `mosip_idmap`. Deployed only as the `helm/idrepo-saltgen` Job, never inside the HTTP service.
-3. **[Core](id-repository/id-repository-core/README.md)** - Published library (`io.mosip.idrepository.core.*`) with shared DTOs, entities, and utilities used by this service and by IDA.
-
-The separate `id-repository-identity-service`, `id-repository-vid-service`, `credential-service`, and `credential-request-generator` modules no longer exist. See the [service consolidation design](docs/design/service-consolidation.md) for what changed, the three-database layout, and the config URLs an environment must update (`mosip.idrepo.vid.url`, `mosip.idrepo.credrequest.generator.url`, `mosip.idrepo.credential.service.url` → `http://identity.idrepo`).
+- **[ID Repository Service](id-repository/id-repository-service/README.md):**
+  Single HTTP deployable (port `8090`) for identity, draft, VID, credential store, and credential request. Prefixes: `/idrepository/v1/identity`, `/idrepository/v1`, `/v1/credentialservice`, `/v1/credentialrequest`.
+- **[Core](id-repository/id-repository-core/README.md):**
+  Shared library (`io.mosip.idrepository.core.*`) used by ID Authentication and other MOSIP modules.
+- **[Salt Generator](id-repository/id-repository-salt-generator/README.md):**
+  One-shot Job (`helm/idrepo-saltgen`) that populates `uin_hash_salt` / `uin_encrypt_salt` in `mosip_idrepo` and `mosip_idmap`.
 
 ## Codebase Relocation
 
@@ -60,141 +53,15 @@ The project requires:
     export KUBECONFIG=~/.kube/<k8s-cluster.config>
     ```
 
-### Local Setup (for Development or Contribution)
+### Local Setup for Development
 
-The quickest path is [local-dev-setup](id-repository/local-dev-setup/README.md). Docker Compose starts Postgres, config server, WireMock, MinIO, and keymanager, and `run-idrepo-local.bat` / `run-idrepo-local.sh` runs the service on the host at `http://localhost:8090`. The steps below are for running against your own config server.
-
-1. **Make sure the config server is running.** For detailed instructions on setting up and running the config server, refer to the [MOSIP Config Server Setup Guide](https://docs.mosip.io/1.2.0/modules/module-configuration).
-
-   **Note:** Refer to the MOSIP Config Server Setup Guide for setup, and ensure the properties mentioned in the configuration section are taken care of. Replace the properties with your own configurations (e.g., DB credentials, IAM credentials, URL).
-
-2. **Clone the repository:**
-
-   ```text
-   git clone https://github.com/mosip/id-repository.git
-   cd id-repository
-   ```
-
-3. **Build the project:**
-
-   ```text
-   cd id-repository
-   mvn clean install -Dmaven.javadoc.skip=true -Dgpg.skip=true
-   ```
-
-   In PowerShell, quote the flags: `"-Dmaven.javadoc.skip=true" "-Dgpg.skip=true"`.
-
-4. **Start the application:**
-    - Click the Run button in your IDE, or
-    - Run via command:
-
-   ```text
-   java -Dspring.profiles.active=<profile> \
-        -Dspring.cloud.config.uri=<config-url> \
-        -Dspring.cloud.config.label=<config-label> \
-        -Dloader.path=<path-to-kernel-ref-idobjectvalidator.jar> \
-        -jar id-repository-service/target/id-repository-service-<version>.jar
-   ```
-
-   **Example:**
-    - _profile_: `env` (extension used on configuration property files)
-    - _config-label_: `master` (git branch of config repo)
-    - _config-url_: `http://localhost:51000` (URL of the config server)
-
-   The service loads the `application`, `id-repository`, `credential-service`, and `credential-request` property documents from the config server.
-
-5. **Verify Swagger is accessible:** http://localhost:8090/idrepository/v1/identity/swagger-ui/index.html (other links under [APIs](#apis)).
-
-### Local Setup with Docker (Easy Setup for Demos)
-
-#### Option 1: Pull from Docker Hub
-
-Recommended for users who want a quick, ready-to-use setup — testers, students, and external users.
-
-Pull the latest pre-built images from Docker Hub using the following commands:
-
-```text
-docker pull mosipid/id-repository-service:<version>
-docker pull mosipid/id-repository-salt-generator:<version>
-```
-
-Releases before the consolidation published four separate images (`id-repository-identity-service`, `id-repository-vid-service`, `credential-service`, `credential-request-generator`). Do not mix those with `id-repository-service` in one environment.
-
-#### Option 2: Build Docker Images Locally
-
-Recommended for contributors or developers who want to modify or build the services from source.
-
-1. **Clone and build the project:**
-
-   ```text
-   git clone https://github.com/mosip/id-repository.git
-   cd id-repository/id-repository
-   mvn clean install -Dmaven.javadoc.skip=true -Dgpg.skip=true
-   ```
-
-2. **Build the two Docker images:**
-
-   ```text
-   docker build -t id-repository-service id-repository-service
-   docker build -t id-repository-salt-generator id-repository-salt-generator
-   ```
-
-#### Running the Services
-
-Run the salt generator once and let it finish before starting the service:
-
-```text
-docker run --rm --name id-repository-salt-generator id-repository-salt-generator
-docker run -d -p 8090:8090 --name id-repository-service id-repository-service
-```
-
-Both containers need the config server URL, profile, and label (see [Local Setup](#local-setup-for-development-or-contribution)).
-
-#### Verify Installation
-
-```text
-docker ps
-```
-
-Access the service at `http://localhost:8090`. Health: `http://localhost:8090/idrepository/v1/identity/actuator/health`.
+For prerequisites, setup, startup, and verification instructions, see the
+[local development guide](id-repository/local-dev-setup/README.md).
 
 ## Deployment
 
-### Kubernetes
-
-To deploy ID Repository services on a Kubernetes cluster, refer to the [Sandbox Deployment Guide](https://docs.mosip.io/1.2.0/deploymentnew/v3-installation).
-
-### Pre-requisites
-
-* Set KUBECONFIG variable to point to existing K8 cluster kubeconfig file:
-    ```text
-    export KUBECONFIG=~/.kube/<k8s-cluster.config>
-    ```
-
-### Install
-
-Installs the `idrepo-saltgen` Job (waits for it to complete), then the `identity` chart, which runs `id-repository-service`:
-
-```text
-cd deploy/idrepo
-./install.sh
-```
-
-Before installing on an environment that ran the separate services, update the service URLs in `mosip-config` as described in the [consolidation design](docs/design/service-consolidation.md#6-service-urls-in-mosip-config). Otherwise calls to `vid.idrepo`, `credential.idrepo`, or `credentialrequest.idrepo` fail DNS resolution.
-
-### Delete
-
-```text
-cd deploy/idrepo
-./delete.sh
-```
-
-### Restart
-
-```text
-cd deploy/idrepo
-./restart.sh
-```
+For Kubernetes deployment instructions, see the
+[deployment guide](deploy/idrepo/README.md). Before installing on an environment that ran the separate services, update `mosip.idrepo.vid.url`, `mosip.idrepo.credrequest.generator.url`, and `mosip.idrepo.credential.service.url` to `http://identity.idrepo` — see the [consolidation design](docs/design/service-consolidation.md#6-service-urls-in-mosip-config).
 
 ## Configuration
 
