@@ -19,6 +19,7 @@ import static io.mosip.idrepository.core.constant.IdRepoConstants.UPDATE_DRAFT;
 import static io.mosip.idrepository.core.constant.IdRepoConstants.VERIFIED_ATTRIBUTES;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.BIO_EXTRACTION_ERROR;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DATABASE_ACCESS_ERROR;
+import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DRAFT_UIN_DATA_NOT_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DRAFT_UIN_DETAILS_NOT_FOUND;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.DRAFT_UIN_HASH_MISMATCH;
 import static io.mosip.idrepository.core.constant.IdRepoErrorConstants.NO_RECORD_FOUND;
@@ -817,6 +818,8 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 	 *
 	 * <p>Draft demographics from the LOST packet (allowed update fields) are preserved on conflict;
 	 * attribute update-count limits are enforced at publish, not here.
+	 * {@code uinData} must already be present. Update draft writes it; stamping before that
+	 * update is rejected instead of treating a missing identity as empty.
 	 */
 	@Override
 	public IdResponseDTO updateDraftUinData(String registrationId, String uin) throws IdRepoAppException {
@@ -828,6 +831,14 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 				throw new IdRepoAppException(NO_RECORD_FOUND);
 			}
 			UinDraft draft = uinDraftOpt.get();
+
+			// Update draft must run first and store the packet identity. A null uinData means
+			// that update has not happened; backfill would otherwise NPE while reading it.
+			if (draft.getUinData() == null) {
+				idrepoDraftLogger.error(IdRepoSecurityManager.getUser(), ID_REPO_DRAFT_SERVICE_IMPL,
+						UPDATE_DRAFT, "UPDATE DRAFT NOT CALLED BEFORE STAMPING | regId=" + registrationId);
+				throw new IdRepoAppException(DRAFT_UIN_DATA_NOT_FOUND);
+			}
 
 			// Verify whether the UIN to be stamped exists in the IDREPO UIN table.
 			if (!super.uinRepo.existsByUinHash(super.getUinHash(uin))) {

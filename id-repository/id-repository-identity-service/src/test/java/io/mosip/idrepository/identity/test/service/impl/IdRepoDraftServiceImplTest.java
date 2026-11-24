@@ -1424,6 +1424,32 @@ public class IdRepoDraftServiceImplTest {
 		assertEquals(IdRepoErrorConstants.DRAFT_UIN_HASH_MISMATCH.getErrorCode(), thrown.getErrorCode());
 	}
 
+	@Test
+	public void should_throwDraftUinDataNotFound_when_updateDraftUinData_uinDataIsNull() throws IdRepoAppException {
+		UinDraft draft = new UinDraft();
+		draft.setRegId("REG123");
+		draft.setStatusCode("DRAFT");
+		draft.setUin(null);
+		draft.setUinHash(null);
+		draft.setUinData(null);
+		when(uinDraftRepo.findByRegId("REG123")).thenReturn(Optional.of(draft));
+
+		IdRepoAppException thrown = assertThrows(IdRepoAppException.class, () ->
+				idRepoServiceImpl.updateDraftUinData("REG123", "274390482564"));
+
+		assertEquals(IdRepoErrorConstants.DRAFT_UIN_DATA_NOT_FOUND.getErrorCode(), thrown.getErrorCode());
+		assertEquals(IdRepoErrorConstants.DRAFT_UIN_DATA_NOT_FOUND.getErrorMessage(), thrown.getErrorText());
+		assertEquals("IDR-IDC-022", thrown.getErrorCode());
+		assertNull(draft.getUin());
+		assertNull(draft.getUinHash());
+		assertNull(draft.getUinData());
+		verify(uinRepo, never()).existsByUinHash(any());
+		verify(uinRepo, never()).findByUinHash(any());
+		verify(securityManager, never()).encryptWithSalt(any(), any(), any());
+		verify(uinDraftRepo, never()).flush();
+		verify(uinDraftRepo, never()).save(any());
+	}
+
 
 	// ── getDraftV2 with type parameter ───────────────────────────────────────
 
