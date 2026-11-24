@@ -265,6 +265,51 @@ public class IdRepoServiceHelper {
     }
 
     /**
+     * Finds object entries of schema handle array fields that omit a non-blank {@code value}.
+     * <p>
+     * Schema {@code items.required=["value"]} is not always enforced by the ID-object
+     * validator for array handles, so create/update must reject these paths explicitly
+     * (IDR-IDC-001 / {@code identity/{field}/{index}/value}).
+     * </p>
+     *
+     * @param requestMap request body map that contains {@code identity}
+     * @return missing-value paths in schema order; empty when every object item has a value
+     * @throws IdRepoAppException when the schema for the identity version cannot be loaded
+     */
+    @SuppressWarnings("unchecked")
+    public List<String> findMissingHandleArrayItemValuePaths(Map<String, Object> requestMap)
+            throws IdRepoAppException {
+        List<String> missingPaths = new ArrayList<>();
+        if (requestMap == null || !(requestMap.get(ROOT_PATH) instanceof Map)) {
+            return missingPaths;
+        }
+        Map<String, Object> identityMap = (Map<String, Object>) requestMap.get(ROOT_PATH);
+        String schemaVersion = String.valueOf(
+                identityMap.get(identityMapping.getIdentity().getIDSchemaVersion().getValue()));
+        if (!supportedHandlesInSchema.containsKey(schemaVersion)) {
+            getSchema(schemaVersion);
+        }
+        List<String> schemaHandles = supportedHandlesInSchema.getOrDefault(schemaVersion, List.of());
+        for (String handleFieldId : schemaHandles) {
+            Object fieldValue = identityMap.get(handleFieldId);
+            if (!(fieldValue instanceof List<?> items)) {
+                continue;
+            }
+            for (int i = 0; i < items.size(); i++) {
+                Object item = items.get(i);
+                if (!(item instanceof Map<?, ?> itemMap)) {
+                    continue;
+                }
+                Object rawValue = itemMap.get("value");
+                if (!(rawValue instanceof String) || !StringUtils.hasText((String) rawValue)) {
+                    missingPaths.add(ROOT_PATH + "/" + handleFieldId + "/" + i + "/value");
+                }
+            }
+        }
+        return missingPaths;
+    }
+
+    /**
      * Replaces {@code selectedHandles} in the identity map with the field ids that
      * were actually accepted as handles.
      *

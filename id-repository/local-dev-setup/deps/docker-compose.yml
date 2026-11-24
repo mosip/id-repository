@@ -164,11 +164,15 @@ services:
     depends_on:
       minio:
         condition: service_healthy
+    # Bitnami MinIO can restart once after the first healthy probe; retry until mc can connect.
     entrypoint: >
       /bin/sh -c "
-      mc alias set local http://minio:9000 admin minioadmin &&
-      mc mb --ignore-existing local/idrepo &&
-      exit 0
+      for i in $$(seq 1 30); do
+        mc alias set local http://minio:9000 admin minioadmin >/dev/null 2>&1 &&
+        mc mb --ignore-existing local/idrepo && echo 'minio-init: bucket idrepo ready' && exit 0;
+        echo \"minio-init: MinIO not ready (attempt $$i/30), retrying in 2s\"; sleep 2;
+      done;
+      echo 'minio-init: FAILED to create bucket idrepo'; exit 1
       "
 
   # Key Manager — encrypt/decrypt for id-repo (PKCS12, no SoftHSM).
