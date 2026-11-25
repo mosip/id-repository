@@ -41,7 +41,7 @@ See [DB guide](db_scripts/README.md) for database setup and migration details.
 
 The project requires:
 - **JDK:** 21.0.3
-- **Maven:** 3.9.6
+- **Maven:** 3.9.x
 - **kernel-auth-adapter** is a Maven dependency of the service; it does not need to be added to the build path manually.
 - **ID object validator:** `kernel-ref-idobjectvalidator.jar` must be on the loader path (`-Dloader.path`). Cluster images download it from the `artifactory-share` ConfigMap; for local runs see [additional jars](id-repository/local-dev-setup/deps/additional_jars/README.md).
 - **Biometric SDK:** the service calls a BioSDK service over HTTP (`biosdk-client`). Point it at a running BioSDK service or the [Mock SDK](https://github.com/mosip/mosip-mock-services/tree/master/mock-sdk).

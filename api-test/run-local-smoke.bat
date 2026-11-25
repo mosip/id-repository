@@ -39,7 +39,7 @@ if exist "%API_TEST_DIR%.env.local" (
 
 if not defined postgres-password set "postgres-password=mosip123"
 if not defined keycloak_Password set "keycloak_Password=admin"
-if not defined mosip_idrepo_client_secret set "mosip_idrepo_client_secret=QTGizTYN4US0XHOU"
+if not defined mosip_idrepo_client_secret set "mosip_idrepo_client_secret=local-secret"
 if not defined mosip_testrig_client_secret set "mosip_testrig_client_secret=local-dev-testrig-secret"
 if not defined mosip_admin_client_secret set "mosip_admin_client_secret=local-dev-secret"
 if not defined mosip_partner_client_secret set "mosip_partner_client_secret=local-dev-secret"

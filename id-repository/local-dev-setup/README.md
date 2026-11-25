@@ -36,7 +36,7 @@ authentication; API calls require an authorization cookie.
 
 ## Prerequisites
 
-JDK **21**, Maven **3.9+**, Docker Desktop (Compose V2). Details: [`LOCAL-DEV-SETUP.md`](LOCAL-DEV-SETUP.md).
+JDK **21**, Maven **3.9.x**, Docker Desktop (Compose V2). Details: [`LOCAL-DEV-SETUP.md`](LOCAL-DEV-SETUP.md).
 
 For a Docker Desktop memory limit of 6 GB, use
 `./run-local-stack.sh up-low-mem`. The Java application also needs memory
