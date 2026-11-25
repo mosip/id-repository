@@ -56,7 +56,7 @@ The project requires:
 ### Local Setup for Development
 
 For prerequisites, setup, startup, and verification instructions, see the
-[local development guide](id-repository/local-dev-setup/README.md).
+[local development guide](id-repository/local-dev-setup/LOCAL-DEV-SETUP.md).
 
 ## Deployment
 

@@ -42,7 +42,7 @@ Local means: Docker deps + **host** `id-repository-service` on `:8090`. Tests do
 
 There is **no Keycloak**. Tokens come from WireMock.
 
-Full stack notes: [`id-repository/local-dev-setup/README.md`](../id-repository/local-dev-setup/README.md) (detail: [`LOCAL-DEV-SETUP.md`](../id-repository/local-dev-setup/LOCAL-DEV-SETUP.md)).
+See the [local development setup guide](../id-repository/local-dev-setup/LOCAL-DEV-SETUP.md) for the full stack setup.
 
 ### Step A — Build and start the service
 

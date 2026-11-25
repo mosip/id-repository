@@ -60,4 +60,4 @@ run-idrepo-local.bat …
 | POST | `/v1/credentialrequest/callback/notifyStatus` | WebSub callback |
 | GET | `/v1/credentialrequest/scheduleRetrySubscription` · `/scheduleWebsubSubscription` | WebSub resubscription |
 
-See [docs/design/service-consolidation.md](../../docs/design/service-consolidation.md), [local-dev-setup](../local-dev-setup/README.md), and [AGENTS.md](AGENTS.md).
+See [docs/design/service-consolidation.md](../../docs/design/service-consolidation.md), [local-dev-setup](../local-dev-setup/LOCAL-DEV-SETUP.md), and [AGENTS.md](AGENTS.md).

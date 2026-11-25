@@ -1,6 +1,6 @@
 # local-dev-setup
 
-Deps in Docker, `id-repository-service` on the host. How-to: `README.md`; detail: `LOCAL-DEV-SETUP.md`.
+Deps in Docker, `id-repository-service` on the host. How-to: `LOCAL-DEV-SETUP.md`.
 
 ```text
 Ports
