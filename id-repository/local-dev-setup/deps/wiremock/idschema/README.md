@@ -25,21 +25,40 @@ How to choose which Id Schema local id-repository and api-test see.
 
 Alias: `email-array` → `email-handle`.
 
-## Switch (required steps)
+## Switch (required steps) — local QA
 
-Run from `id-repository/local-dev-setup/` (nested Maven tree).
+Run from `id-repository/local-dev-setup/` (nested Maven tree). Also summarized in
+[`../../../README.md`](../../../README.md#qa-test-with-a-different-id-schema) and
+[`../../../../api-test/README.md`](../../../../api-test/README.md) (Step B2).
+
+### Windows QA loop (`run-idrepo-local.bat`)
+
+```bat
+cd id-repository\id-repository\local-dev-setup
+
+run-idrepo-local.bat up
+bash run-local-stack.sh idschema email-handle
+REM also: default | diff-handle
+
+run-idrepo-local.bat stop
+run-idrepo-local.bat run
+
+curl.exe -s "http://localhost:8082/v1/masterdata/idschema/latest?schemaVersion=0"
+
+cd ..\..\..\api-test
+run-local-smoke.bat
+```
+
+### macOS / Linux / Git Bash
 
 **1. Pick a variant** (copies onto `idschema-latest-active.json` and recreates WireMock):
 
 ```bash
-# Git Bash / macOS / Linux / WSL
 ./run-local-stack.sh idschema                 # list + show which is active
 ./run-local-stack.sh idschema default
 ./run-local-stack.sh idschema email-handle
 ./run-local-stack.sh idschema diff-handle
 ```
-
-Windows cmd: `bash run-local-stack.sh idschema email-handle`
 
 **2. Restart the host app** (schema cache):
 
@@ -47,8 +66,6 @@ Windows cmd: `bash run-local-stack.sh idschema email-handle`
 ./run-idrepo-local.sh stop
 ./run-idrepo-local.sh run
 ```
-
-Windows: `run-idrepo-local.bat stop` then `run-idrepo-local.bat run`
 
 **3. Verify WireMock** (before or after host restart):
 
@@ -58,7 +75,7 @@ curl -s "http://localhost:8082/v1/masterdata/idschema/latest?schemaVersion=0"
 
 Check `response.schemaJson` (string): for `email-handle`, `identity.properties.email.type` should be `"array"`; for `diff-handle`, look for `licenseNo` with `"handle": true`.
 
-**4. Run api-test** (optional) against the running host on `:8090` — see [`../../../../api-test/README.md`](../../../../api-test/README.md).
+**4. Run api-test** against the host on `:8090` — see [`../../../../api-test/README.md`](../../../../api-test/README.md).
 
 | Active schema | Expect |
 |---------------|--------|
