@@ -122,7 +122,7 @@ Use `env.testLevel=smokeAndRegression` for the full suite. `env.endpoint` should
 ## Run against qa11new (or other remote env)
 
 1. Put Keycloak / DB URLs and secrets in `config/Idrepo.properties` (do **not** commit real secrets).
-2. Ensure `apitest-commons` includes the Face Subtype / CBEFF sanitize fix (see Biometric BioValue section below).
+2. Ensure `apitest-commons` `1.8.0-SNAPSHOT` (the version in `pom.xml`) is installed; it has the Face Subtype / CBEFF sanitize fix (see Biometric BioValue section below).
 3. Run with a non-localhost endpoint, for example:
 
 ```sh
@@ -154,7 +154,7 @@ AddIdentity needs a CBEFF payload in `documents[0].value`. The runner chooses th
 - Always generates BioValue via Mock SBI; it does **not** fall back to `bioValue.properties`.
 - `mds/` is copied into `MosipTemporaryTestResource/mds` the same way as `config/Idrepo.properties`. Commons then points Mock SBI at that folder.
 - Confirm in the log: `Env mode: generating BioValue via Mock SBI` and a large `BioValue ready for AddIdentity (len=...)`.
-- `apitest-commons` must keep empty Face `<Subtype></Subtype>` and sanitize MDS CBEFF for idrepo XSD (strip JWT `<SB>` / `<others>` that known-good BioValue does not have). Install the fixed commons SNAPSHOT before the env run if your IDE still has an older jar.
+- `apitest-commons` must keep empty Face `<Subtype></Subtype>` and sanitize MDS CBEFF for idrepo XSD (strip JWT `<SB>` / `<others>` that known-good BioValue does not have). These fixes are in `apitest-commons` `1.8.0-SNAPSHOT`, not in the `1.7.0` release; build and install it before the env run if your IDE or local Maven repo still has an older jar.
 
 If env fails with `IDR-IDC-002` / `Invalid Input Parameter - documents/0/value`, the CBEFF failed `validateXML` — check mds Face ISO, Face Subtype, and commons sanitize — not the local property file.
 
