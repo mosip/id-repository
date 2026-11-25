@@ -455,38 +455,54 @@ public class IdRepoUtil extends AdminTestUtil {
 	/**
 	 * Value that matches the live IdSchema validator for a handle field.
 	 * <p>
-	 * Prefers {@link #generateSchemaFieldValue}. When that returns blank, or (for the email field)
-	 * a token without {@code @} — common when email validators live under
-	 * {@code items.properties.value} on an array handle — falls back to a unique id, and for email
-	 * to {@code <id>@mosip.net} so the value still passes a typical email regex.
+	 * Prefers {@link #generateSchemaFieldValue} for non-email handles. For the email field, always
+	 * returns a unique {@code mosip…@mosip.net} mailbox — email validators often live under
+	 * {@code items.properties.value}, and {@code generateSchemaFieldValue} can return blank tokens
+	 * or binary-ish strings that happen to contain {@code @} (seen on DEV1 as
+	 * {@code IDR-IDC-002 identity/email/2/value} in appendUntagged).
 	 * </p>
 	 *
 	 * @param handle schema property name (e.g. {@code email}, {@code functionalId})
 	 * @return a non-blank handle value safe for positive create/update requests
 	 */
 	public static String schemaHandleValue(String handle) {
+		boolean isEmail = handle != null && handle.equalsIgnoreCase(resolveEmailFieldName());
+		if (isEmail) {
+			return "mosip" + generateRandomNumberString(2) + (System.nanoTime() % 1_000_000_000L)
+					+ "@mosip.net";
+		}
 		String generated = generateSchemaFieldValue(handle);
-		boolean isEmail = handle != null && handle.equals(resolveEmailFieldName());
-		// Email validators often sit under items.properties.value (array handle). generateSchemaFieldValue
-		// then returns a non-email token (e.g. mosipNNNN); force a mailbox shape for those.
-		if (generated == null || generated.isBlank() || (isEmail && !generated.contains("@"))) {
-			String fallback = "mosip" + generateRandomNumberString(2)
-					+ (System.nanoTime() % 1_000_000_000L);
-			if (isEmail) {
-				return fallback + "@mosip.net";
-			}
-			return fallback;
+		if (generated == null || generated.isBlank()) {
+			return "mosip" + generateRandomNumberString(2) + (System.nanoTime() % 1_000_000_000L);
 		}
 		return generated;
 	}
 
-	/** Email property name from the auth actuator ({@code json-property.emailId}), e.g. {@code email}. */
+	/**
+	 * Email property name from the auth actuator ({@code json-property.emailId}), e.g. {@code email}.
+	 * <p>
+	 * Actuator values are JSON arrays ({@code ["email"]}). Parse that way — a regex strip can leave
+	 * a mismatched name so {@code uniquifyArrayHandleValues} fails to skip email and overwrites
+	 * {@code $EMAILVALUE$} from AddIdentity.
+	 * </p>
+	 */
 	public static String resolveEmailFieldName() {
 		String email = getValueFromAuthActuator("json-property", "emailId");
 		if (email == null || email.isBlank()) {
 			return "email";
 		}
-		return email.replaceAll("\\[\"|\"]", "");
+		email = email.trim();
+		try {
+			if (email.startsWith("[")) {
+				JSONArray arr = new JSONArray(email);
+				if (!arr.isEmpty()) {
+					return arr.getString(0);
+				}
+			}
+		} catch (Exception e) {
+			// fall through
+		}
+		return email.replaceAll("^\\[\"?|\"?\\]$|^\"|\"$", "");
 	}
 
 	/** True when the live IdSchema declares at least one handle field. */
