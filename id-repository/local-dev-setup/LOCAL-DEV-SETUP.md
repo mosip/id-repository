@@ -31,7 +31,7 @@ that they are available.
 |------|-------------|-------------------|
 | Git | Installed | `git --version` |
 | JDK | Version 21 | `java -version` |
-| Maven | Version 3.9.6 or later | `mvn -version` |
+| Maven | Version 3.9.x | `mvn -version` |
 | Docker | Docker Desktop with Compose V2 | `docker --version` and `docker compose version` |
 | curl | Installed | `curl --version` |
 

@@ -12,11 +12,10 @@ Functional API tests (REST Assured + TestNG) for identity, VID, drafts, auth-typ
 ## Prerequisites
 
 - JDK **21**
-- Maven **3.9+**
+- Maven **3.9.x**
 - Lombok
-- MOSIP Maven `settings.xml` in `~/.m2` ([copy](https://github.com/mosip/mosip-functional-tests/blob/master/settings.xml))
 
-Windows: Git Bash optional. Linux: also put `settings.xml` under Maven `/conf` if you install Maven system-wide.
+Windows: Git Bash optional.
 
 Clone:
 
