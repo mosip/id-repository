@@ -88,6 +88,10 @@ if /I not "%SKIP_PREFLIGHT%"=="1" (
 set "authCertsPath=%API_TEST_DIR%target\local-authcerts"
 if not exist "%authCertsPath%" mkdir "%authCertsPath%"
 
+REM EmailableReport copies HTML into mountPathForReport (Idrepo-local.properties).
+set "reportMountPath=%API_TEST_DIR%target\local-reports"
+if not exist "%reportMountPath%" mkdir "%reportMountPath%"
+
 set "LOG_DIR=%API_TEST_DIR%.local\logs"
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 for /f %%I in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmmss"') do set "STAMP=%%I"

@@ -29,7 +29,7 @@ Alias: `email-array` → `email-handle`.
 
 Run from `id-repository/local-dev-setup/` (nested Maven tree). Also summarized in
 [`../../../README.md`](../../../README.md#qa-test-with-a-different-id-schema) and
-[`../../../../api-test/README.md`](../../../../api-test/README.md) (Step B2).
+[`../../../../../api-test/README.md`](../../../../../api-test/README.md) (Step B2).
 
 ### Windows QA loop (`run-idrepo-local.bat`)
 
@@ -75,7 +75,7 @@ curl -s "http://localhost:8082/v1/masterdata/idschema/latest?schemaVersion=0"
 
 Check `response.schemaJson` (string): for `email-handle`, `identity.properties.email.type` should be `"array"`; for `diff-handle`, look for `licenseNo` with `"handle": true`.
 
-**4. Run api-test** against the host on `:8090` — see [`../../../../api-test/README.md`](../../../../api-test/README.md).
+**4. Run api-test** against the host on `:8090` — see [`../../../../../api-test/README.md`](../../../../../api-test/README.md).
 
 | Active schema | Expect |
 |---------------|--------|

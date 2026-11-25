@@ -51,29 +51,27 @@ public class IdRepoArrayHandle {
 				+ (System.nanoTime() % 1_000_000_000L);
 	}
 
-	/** Value that matches the live IdSchema validator for this handle field. */
-	private static String schemaHandleValue(String handle) {
-		String generated = IdRepoUtil.generateSchemaFieldValue(handle);
-		if (generated == null || generated.isBlank()) {
-			return nextRandomId();
-		}
-		return generated;
-	}
-
 	/**
 	 * Replaces array-handle {@code value} fields with a value from that field's IdSchema validator.
-	 * String handles (email/phone) are left to {@code $EMAILVALUE$} / {@code $PHONENUMBERFORIDENTITY$}.
-	 * Validators that live behind a schema {@code $ref} are resolved by apitest-commons.
+	 * <p>
+	 * Email keeps the script-rendered value ({@code $EMAILVALUE$} or a YAML negative) so positive
+	 * cases stay valid and negative cases keep their invalid payload. Newly appended email entries
+	 * use {@link IdRepoUtil#schemaHandleValue}. Other handles are uniquified per run.
+	 * </p>
 	 */
 	private static void uniquifyArrayHandleValues(JSONObject identity) {
 		if (identity == null || !identity.has("selectedHandles")
 				|| !(identity.get("selectedHandles") instanceof JSONArray)) {
 			return;
 		}
+		String emailField = IdRepoUtil.resolveEmailFieldName();
 		JSONArray selectedHandles = identity.getJSONArray("selectedHandles");
 		for (int i = 0; i < selectedHandles.length(); i++) {
 			String handle = selectedHandles.optString(i, null);
 			if (handle == null || !identity.has(handle) || !(identity.get(handle) instanceof JSONArray)) {
+				continue;
+			}
+			if (handle.equals(emailField)) {
 				continue;
 			}
 			JSONArray handleArray = identity.getJSONArray(handle);
@@ -83,7 +81,7 @@ public class IdRepoArrayHandle {
 				}
 				JSONObject entry = handleArray.getJSONObject(j);
 				if (entry.has("value") && entry.get("value") instanceof String) {
-					entry.put("value", schemaHandleValue(handle));
+					entry.put("value", IdRepoUtil.schemaHandleValue(handle));
 				}
 			}
 		}
@@ -112,7 +110,7 @@ public class IdRepoArrayHandle {
 		JSONObject request = jsonObj.getJSONObject("request");
 		JSONObject identity = request.getJSONObject("identity");
 		uniquifyArrayHandleValues(identity);
-		String emailResult = resolveEmailFieldName();
+		String emailResult = IdRepoUtil.resolveEmailFieldName();
 
 		// Handle cases that modify selectedHandles globally — resolved before per-handle loop.
 		// More-specific patterns checked before substrings they contain.
@@ -170,20 +168,20 @@ public class IdRepoArrayHandle {
 		}
 		if (testCaseName.contains("_withSelectedHandlesCaseMismatch")) {
 			JSONArray selectedHandles = new JSONArray();
-			selectedHandles.put(resolveEmailFieldName().toUpperCase());
+			selectedHandles.put(IdRepoUtil.resolveEmailFieldName().toUpperCase());
 			identity.put("selectedHandles", selectedHandles);
 			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withSelectedHandlesSpace")) {
 			JSONArray selectedHandles = new JSONArray();
-			selectedHandles.put(" " + resolveEmailFieldName() + " ");
+			selectedHandles.put(" " + IdRepoUtil.resolveEmailFieldName() + " ");
 			identity.put("selectedHandles", selectedHandles);
 			return jsonObj.toString();
 		}
 		if (testCaseName.contains("_withDuplicateSelectedHandles")) {
 			JSONArray selectedHandles = new JSONArray();
-			selectedHandles.put(resolveEmailFieldName());
-			selectedHandles.put(resolveEmailFieldName());
+			selectedHandles.put(IdRepoUtil.resolveEmailFieldName());
+			selectedHandles.put(IdRepoUtil.resolveEmailFieldName());
 			identity.put("selectedHandles", selectedHandles);
 			return jsonObj.toString();
 		}
@@ -276,7 +274,7 @@ public class IdRepoArrayHandle {
 		JSONObject request = jsonObj.getJSONObject("request");
 		JSONObject identity = request.getJSONObject("identity");
 		String phoneFieldName = resolvePhoneFieldName();
-		String emailFieldName = resolveEmailFieldName();
+		String emailFieldName = IdRepoUtil.resolveEmailFieldName();
 		// Schema HBS dumps every field, including a fresh functionalId [{value, tags}] that is not
 		// the stored one. updateJsonObject only merges language lists, so that leftover recurses
 		// to IDR-IDC-004. Omit unmutated array handles so email/phone-only updates stay partial.
@@ -315,7 +313,7 @@ public class IdRepoArrayHandle {
 		}
 		if (testCaseName.contains("_withSelectedHandlesSpace")) {
 		    JSONArray selectedHandles = new JSONArray();
-		    selectedHandles.put(" " + resolveEmailFieldName() + " ");
+		    selectedHandles.put(" " + IdRepoUtil.resolveEmailFieldName() + " ");
 		    identity.put("selectedHandles", selectedHandles);
 		    return jsonObj.toString();
 		}
@@ -444,30 +442,30 @@ public class IdRepoArrayHandle {
 		} else if (testCaseName.contains("_withmultiplevalues")) {
 			putMultipleValues(handleArray);
 		} else if (testCaseName.contains("_WithEmailHandleAndNotification")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyEmailHandleAndNotification(handleArray);
 		} else if (testCaseName.contains("_withmultiplehandleswithoutvalue")) {
 			applyMultipleHandlesWithoutValue(handleArray);
 		} else if (testCaseName.contains("_WithMultipleEmail_And_OneEmail_As_Handle")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyMultipleEmailOneHandle(handleArray);
 		} else if (testCaseName.contains("_WithMultipleEmailWithoutHandle")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyMultipleEmailWithoutHandle(handleArray);
 		} else if (testCaseName.contains("_SelectedHandlesOrderVariation")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applySelectedHandlesOrderVariation(handleArray);
 		} else if (testCaseName.contains("_OnlyNotificationTag")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyOnlyNotificationTag(handleArray);
 		} else if (testCaseName.contains("_WithLengthyEmailArray")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyLengthyEmailArray(handleArray);
 		} else if (testCaseName.contains("_WithMultipleHandlesDifferentDomains")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyMultipleHandlesDifferentDomains(handleArray);
 		} else if (testCaseName.contains("_WithMultipleEmailHandlesTagged")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyMultipleEmailHandlesTagged(handleArray);
 		} else if (testCaseName.contains("_withfunctionalIdsUsedFirstTwoValueOutOfFive") && isArrayHandle(handle)) {
 			applyFunctionalIdsUsedFirstTwoValueOutOfFive(handleArray, handle);
@@ -520,7 +518,7 @@ public class IdRepoArrayHandle {
 		//   _withupdatedselectedhandleanddemo and _withupdatedselectedhandleandfirstattribute before _withupdatedselectedhandle
 		//   _withupdatetagsandhandles before _withupdatetags
 		if (testCaseName.contains("_withupdatevalues")) {
-			applyWithUpdateValues(handleArray, handle, resolveEmailFieldName());
+			applyWithUpdateValues(handleArray, handle, IdRepoUtil.resolveEmailFieldName());
 		} else if (testCaseName.contains("_withmultiplevalues")) {
 			putMultipleValues(handleArray);
 		} else if (testCaseName.contains("_appendUntaggedValuesToArrayHandle")
@@ -545,22 +543,22 @@ public class IdRepoArrayHandle {
 		} else if (testCaseName.contains("_witharandomnonhandleattr")) {
 			applyWithARandomNonHandleAttr(identity, selectedHandles);
 		} else if (testCaseName.contains("_WithMultipleEmail_And_OneEmail_As_Handle")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyMultipleEmailOneHandle(handleArray);
 		} else if (testCaseName.contains("_WithMultipleEmailWithoutHandle")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyMultipleEmailWithoutHandle(handleArray);
 		} else if (testCaseName.contains("_WithMultipleEmailHandlesTagged")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyMultipleEmailHandlesTagged(handleArray);
 		} else if (testCaseName.contains("_RetainTaggedEmail")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyRetainTaggedEmail(handleArray);
 		} else if (testCaseName.contains("_WithLengthyEmailArray")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyLengthyEmailArray(handleArray);
 		} else if (testCaseName.contains("_WithMultipleHandlesDifferentDomains")
-		        && handle.equals(resolveEmailFieldName())) {
+		        && handle.equals(IdRepoUtil.resolveEmailFieldName())) {
 		    applyMultipleHandlesDifferentDomains(handleArray);
 		} else if (testCaseName.contains("_updateselectedhandleswithscehmaattrwhichisnothandle")) {
 			applyUpdateSelectedHandlesWithSchemaAttrWhichIsNotHandle(identity, selectedHandles);
@@ -647,7 +645,8 @@ public class IdRepoArrayHandle {
 				|| testCaseName.contains("_withusedhandlevalue")
 				|| testCaseName.contains("_withdeletehandlefromrecord")
 				|| testCaseName.contains("_withcasesensitivehandles")
-				|| testCaseName.contains("_withmultiplehandleswithoutvalue");
+				|| testCaseName.contains("_withmultiplehandleswithoutvalue")
+				|| testCaseName.contains("_withArrayOfStringNotInSchema");
 	}
 
 	/** True for scenarios that rewrite the email field as an {@code [{value, tags}]} array. */
@@ -791,7 +790,7 @@ public class IdRepoArrayHandle {
 
 	/** Replays only the saved email value onto this identity, to prove a freed handle value is reusable. */
 	private static void applySavedEmailValueOnly(JSONObject identity) {
-		String emailField = resolveEmailFieldName();
+		String emailField = IdRepoUtil.resolveEmailFieldName();
 		String savedEmail = savedHandleValues.get(emailField);
 		if (savedEmail == null) {
 			throw new IllegalStateException("No saved email handle value is available for reuse");
@@ -800,12 +799,6 @@ public class IdRepoArrayHandle {
 			throw new IllegalStateException("Email handle field is absent from the identity");
 		}
 		writeHandleValue(identity, emailField, savedEmail);
-	}
-
-	/** Email property name from the auth actuator ({@code json-property.emailId}), e.g. {@code email}. */
-	private static String resolveEmailFieldName() {
-		String email = AdminTestUtil.getValueFromAuthActuator("json-property", "emailId");
-		return email.replaceAll("\\[\"|\"]", "");
 	}
 
 	/** Adds a non-schema {@code values} array (three strings) to every entry; the server must reject it. */
@@ -822,9 +815,9 @@ public class IdRepoArrayHandle {
 	/** Appends two more untagged values to an existing array-typed handle, to prove tags don't gate status. */
 	private static void applyAppendUntaggedValues(JSONArray handleArray, String handle) {
 		JSONObject second = new JSONObject();
-		second.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+		second.put("value", IdRepoUtil.schemaHandleValue(handle));
 		JSONObject third = new JSONObject();
-		third.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+		third.put("value", IdRepoUtil.schemaHandleValue(handle));
 		handleArray.put(second);
 		handleArray.put(third);
 	}
@@ -916,7 +909,7 @@ public class IdRepoArrayHandle {
 		// Positive: five entries, only the first tagged; values generated to satisfy the handle validator.
 		for (int j = 0; j < 4; j++) {
 			JSONObject obj = new JSONObject();
-			obj.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+			obj.put("value", IdRepoUtil.schemaHandleValue(handle));
 			if (j < 1) {
 				obj.put("tags", new JSONArray().put("handle"));
 			}
@@ -1047,10 +1040,10 @@ public class IdRepoArrayHandle {
 		if (handleArray.length() < 3) {
 			// Positive: appended values generated to satisfy the handle's own validator.
 			JSONObject secondValue = new JSONObject();
-			secondValue.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+			secondValue.put("value", IdRepoUtil.schemaHandleValue(handle));
 			secondValue.put("tags", new JSONArray().put("handle"));
 			JSONObject thirdValue = new JSONObject();
-			thirdValue.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+			thirdValue.put("value", IdRepoUtil.schemaHandleValue(handle));
 			handleArray.put(secondValue);
 			handleArray.put(thirdValue);
 		}
@@ -1162,7 +1155,7 @@ public class IdRepoArrayHandle {
 				handleArray.getJSONObject(j).put("value", "mosip_update_" + RANDOM_ID + "@mosip.net");
 			} else {
 				// Positive update — new value generated to satisfy the handle's own validator.
-				handleArray.getJSONObject(j).put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+				handleArray.getJSONObject(j).put("value", IdRepoUtil.schemaHandleValue(handle));
 			}
 		}
 	}

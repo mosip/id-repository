@@ -443,6 +443,39 @@ public class IdRepoUtil extends AdminTestUtil {
 		return AdminTestUtil.generateSchemaFieldValue(fieldName);
 	}
 
+	/**
+	 * Value that matches the live IdSchema validator for a handle field.
+	 * <p>
+	 * Prefers {@link #generateSchemaFieldValue}. When that returns blank (common for email
+	 * validators that live inline with no {@code $ref}), falls back to a unique id — and for the
+	 * email field, to {@code <id>@mosip.net} so the value still passes a typical email regex.
+	 * </p>
+	 *
+	 * @param handle schema property name (e.g. {@code email}, {@code functionalId})
+	 * @return a non-blank handle value safe for positive create/update requests
+	 */
+	public static String schemaHandleValue(String handle) {
+		String generated = generateSchemaFieldValue(handle);
+		if (generated == null || generated.isBlank()) {
+			String fallback = "mosip" + generateRandomNumberString(2)
+					+ (System.nanoTime() % 1_000_000_000L);
+			if (handle != null && handle.equals(resolveEmailFieldName())) {
+				return fallback + "@mosip.net";
+			}
+			return fallback;
+		}
+		return generated;
+	}
+
+	/** Email property name from the auth actuator ({@code json-property.emailId}), e.g. {@code email}. */
+	public static String resolveEmailFieldName() {
+		String email = getValueFromAuthActuator("json-property", "emailId");
+		if (email == null || email.isBlank()) {
+			return "email";
+		}
+		return email.replaceAll("\\[\"|\"]", "");
+	}
+
 	/** True when the live IdSchema declares at least one handle field. */
 	public static boolean schemaHasAnyHandle() {
 		JSONObject props = AdminTestUtil.getIdentitySchemaProperties();

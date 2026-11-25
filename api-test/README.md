@@ -21,7 +21,9 @@ Windows: Git Bash optional. Linux: also put `settings.xml` under Maven `/conf` i
 Clone:
 
 ```sh
-git clone https://github.com/mosip/id-repository.git
+# master/develop do not ship local-dev-setup yet — use the consolidation branch
+# (or the release branch once this lands).
+git clone --branch IDREPO-1583-consolidate-idrepo-services https://github.com/mosip/id-repository.git
 cd id-repository
 ```
 

@@ -70,14 +70,14 @@ cloned repository.
 Skip this step if you already have the repository.
 
 ```bash
-# Clone the repository.
-git clone https://github.com/mosip/id-repository.git
+# Clone the consolidation branch (master/develop do not have local-dev-setup yet).
+git clone --branch IDREPO-1583-consolidate-idrepo-services https://github.com/mosip/id-repository.git
 
 # Enter the local setup directory.
 cd id-repository/id-repository/local-dev-setup
 ```
 
-Check out the branch you intend to develop before starting the setup.
+After this lands on a release branch, clone that branch instead.
 
 ### Windows
 
@@ -193,15 +193,18 @@ java -Dloader.path=deps\additional_jars\kernel-ref-idobjectvalidator.jar
      -jar id-repository-service-*.jar
 ```
 
-Logs: `.local/logs/` (not `logs/`). Use after pom or Java changes. Do **not** use `start` until that rebuild has finished.
+Logs: `.local/logs/` (not `logs/`). Use after pom or Java changes. Do **not** use `start` until that rebuild has finished. The scripts pick the fat jar (excluding `-sources` / `-javadoc`); a bare shell glob of `id-repository-service-*.jar` can hit those and fail with `no main manifest attribute`.
 
 ### `start`
 
-Same JVM flags, **no Maven**. Needs an existing `id-repository-service/target/id-repository-service-*.jar`. Use after a successful `run` / `rebuild` when only Docker deps were restarted.
+Same JVM flags, **no Maven**. Needs an existing fat
+`id-repository-service/target/id-repository-service-*-SNAPSHOT.jar` (not
+`-sources` / `-javadoc`). Use after a successful `run` / `rebuild` when only
+Docker deps were restarted.
 
 ### `rebuild`
 
-Maven package only. Prints the jar path. Use when you want the fat jar without binding the terminal to `:8090`.
+Maven package only. Prints the jar path. Use when you want the fat jar without binding the terminal to `:8090`. **Stop the host app first** — on Windows an in-use jar leaves a non-runnable plain jar after a failed `spring-boot:repackage`.
 
 ### `stop`
 
@@ -418,12 +421,12 @@ docker compose -f docker-compose.yml -f docker-compose.low-mem.yml up -d --force
 
 The application must be running to access these pages.
 
-| API | UI |
-|-----|-----|
-| Identity | http://localhost:8090/idrepository/v1/identity/swagger-ui/index.html |
-| VID | http://localhost:8090/idrepository/v1/swagger-ui/index.html |
-| Credential service | http://localhost:8090/v1/credentialservice/swagger-ui/index.html |
-| Credential request | http://localhost:8090/v1/credentialrequest/swagger-ui/index.html |
+| API | UI | SpringDoc group |
+|-----|-----|-----------------|
+| Identity | http://localhost:8090/idrepository/v1/identity/swagger-ui/index.html | `identity` (pre-selected) |
+| VID | http://localhost:8090/idrepository/v1/swagger-ui/index.html | Select **`vid`** (includes `/vid/**` and `/draft/vid`) |
+| Credential service | http://localhost:8090/v1/credentialservice/swagger-ui/index.html | `credential-service` (pre-selected) |
+| Credential request | http://localhost:8090/v1/credentialrequest/swagger-ui/index.html | `credential-request` (pre-selected) |
 
 ---
 

@@ -641,6 +641,11 @@ public class MosipTestRunner {
 			runner.setTestSuites(suitefiles);
 			System.getProperties().setProperty("testng.outpur.dir", "testng-report");
 			runner.setOutputDirectory("testng-report");
+			// EmailableReport copies HTML into mountPathForReport (Idrepo-local.properties).
+			File reportMount = new File(resolveApiTestModuleDir(), "target/local-reports");
+			if (!reportMount.exists() && !reportMount.mkdirs()) {
+				LOGGER.warn("Could not create report mount path: " + reportMount.getAbsolutePath());
+			}
 			runner.run();
 		}
 	}
