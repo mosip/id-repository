@@ -49,6 +49,15 @@ quick setup instructions explain how to prepare it for each platform.
 Keep the [Key Manager keystore](keys/README.md); it must match the static
 database seed.
 
+### Network requirements
+
+- **First setup needs internet:** Docker image pulls, Maven SNAPSHOT downloads,
+  and `run-local-stack.sh prep` cloning `mosip-ref-impl` (branch `issue-1633`)
+  to build `kernel-ref-idobjectvalidator.jar`.
+- **After the first successful setup**, the stack can run offline if images and
+  the local Maven cache are already present.
+- **VPN / WireGuard is not required** for local deps + host app + api-test.
+
 Run all commands below from:
 
 ```text
@@ -70,14 +79,14 @@ cloned repository.
 Skip this step if you already have the repository.
 
 ```bash
-# Clone the repository.
-git clone https://github.com/mosip/id-repository.git
+# Clone the consolidation branch (master/develop do not have local-dev-setup yet).
+git clone --branch IDREPO-1583-consolidate-idrepo-services https://github.com/mosip/id-repository.git
 
 # Enter the local setup directory.
 cd id-repository/id-repository/local-dev-setup
 ```
 
-Check out the branch you intend to develop before starting the setup.
+After this lands on a release branch, clone that branch instead.
 
 ### Windows
 
@@ -193,15 +202,18 @@ java -Dloader.path=deps\additional_jars\kernel-ref-idobjectvalidator.jar
      -jar id-repository-service-*.jar
 ```
 
-Logs: `.local/logs/` (not `logs/`). Use after pom or Java changes. Do **not** use `start` until that rebuild has finished.
+Logs: `.local/logs/` (not `logs/`). Use after pom or Java changes. Do **not** use `start` until that rebuild has finished. The scripts pick the fat jar (excluding `-sources` / `-javadoc`); a bare shell glob of `id-repository-service-*.jar` can hit those and fail with `no main manifest attribute`.
 
 ### `start`
 
-Same JVM flags, **no Maven**. Needs an existing `id-repository-service/target/id-repository-service-*.jar`. Use after a successful `run` / `rebuild` when only Docker deps were restarted.
+Same JVM flags, **no Maven**. Needs an existing fat
+`id-repository-service/target/id-repository-service-*-SNAPSHOT.jar` (not
+`-sources` / `-javadoc`). Use after a successful `run` / `rebuild` when only
+Docker deps were restarted.
 
 ### `rebuild`
 
-Maven package only. Prints the jar path. Use when you want the fat jar without binding the terminal to `:8090`.
+Maven package only. Prints the jar path. Use when you want the fat jar without binding the terminal to `:8090`. **Stop the host app first** — on Windows an in-use jar leaves a non-runnable plain jar after a failed `spring-boot:repackage`.
 
 ### `stop`
 

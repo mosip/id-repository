@@ -1935,8 +1935,9 @@ public class IdRepoDraftServiceImpl extends IdRepoServiceImpl
 			try {
 				ObjectNode identityObject = mapper.readValue(uinData, ObjectNode.class);
 				// Raw List: stored entries are claim names (v1) or verification objects (v2).
+				// v1: claim-name strings; v2: VerificationMetadata — flatten to List<String> for ResponseDTO.
 				response.setVerifiedAttributes(
-						mapper.convertValue(identityObject.get(VERIFIED_ATTRIBUTES), List.class));
+						IdRepoServiceHelper.toVerifiedAttributeNames(identityObject.get(VERIFIED_ATTRIBUTES)));
 				identityObject.remove(VERIFIED_ATTRIBUTES);
 				response.setIdentity(identityObject);
 			} catch (IOException e) {

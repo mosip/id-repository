@@ -76,7 +76,7 @@
             "description": "WireMock local IAM — returns Authorization JWT",
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"id\": \"string\",\r\n  \"metadata\": {},\r\n  \"request\": {\r\n    \"clientId\": \"mosip-idrepo-client\",\r\n    \"secretKey\": \"${secretKey_idrepo}\",\r\n    \"appId\": \"idrepo\"\r\n  },\r\n  \"requesttime\": \"${__time(YYYY-MM-dd'T'HH:mm:ss.SSS,)}Z\",\r\n  \"version\": \"string\"\r\n}",
+              "raw": "{\r\n  \"id\": \"string\",\r\n  \"metadata\": {},\r\n  \"request\": {\r\n    \"clientId\": \"mosip-idrepo-client\",\r\n    \"secretKey\": \"{{secretKey_idrepo}}\",\r\n    \"appId\": \"idrepo\"\r\n  },\r\n  \"requesttime\": \"{{$isoTimestamp}}Z\",\r\n  \"version\": \"string\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -664,45 +664,6 @@
           "response": []
         },
         {
-          "name": "WebSub remove_id_status callback",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "{{accessToken}}",
-                "type": "text"
-              },
-              {
-                "key": "Cookie",
-                "value": "Authorization={{accessToken}}",
-                "type": "text",
-                "description": "Local stack often uses Cookie Authorization; also try Authorization header."
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{idrepoBaseUrl}}/idrepository/v1/identity/callback/remove_id_status",
-              "host": [
-                "{{idrepoBaseUrl}}"
-              ],
-              "path": [
-                "idrepository",
-                "v1",
-                "identity",
-                "callback",
-                "remove_id_status"
-              ]
-            },
-            "description": "Remove-ID status callback"
-          },
-          "response": []
-        },
-        {
           "name": "WebSub vid_credential_status_update",
           "request": {
             "method": "POST",
@@ -818,7 +779,7 @@
             "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx",
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"id\": \"string\",\r\n    \"version\": \"string\",\r\n    \"requesttime\": \"${utcTime}\",\r\n    \"metadata\": {},\r\n    \"request\": {\r\n\t  \"id\": \"${uin}\",\r\n\t  \"type\": \"demo\",\r\n\t  \"idType\": \"UIN\"\r\n    }\r\n}",
+              "raw": "{\r\n    \"id\": \"string\",\r\n    \"version\": \"string\",\r\n    \"requesttime\": \"{{utcTime}}\",\r\n    \"metadata\": {},\r\n    \"request\": {\r\n\t  \"id\": \"{{uin}}\",\r\n\t  \"type\": \"demo\",\r\n\t  \"idType\": \"UIN\"\r\n    }\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1263,7 +1224,7 @@
             "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx",
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"id\": \"mosip.id.update\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"${utcTime}\",\r\n    \"request\": {\r\n        \"identity\": {\r\n            \"IDSchemaVersion\": ${IDSchemaVersion},\r\n            \"fullName\": [\r\n                {\r\n                    \"language\": \"eng\",\r\n                    \"value\": \"Load Test User ${__threadNum}\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}",
+              "raw": "{\r\n    \"id\": \"mosip.id.update\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"{{utcTime}}\",\r\n    \"request\": {\r\n        \"identity\": {\r\n            \"IDSchemaVersion\": {{IDSchemaVersion}},\r\n            \"fullName\": [\r\n                {\r\n                    \"language\": \"eng\",\r\n                    \"value\": \"Load Test User 1\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1949,7 +1910,7 @@
             "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx",
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"id\": \"mosip.vid.update\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"${utcTime}Z\",\r\n    \"request\": {\r\n        \"vidStatus\": \"REVOKED\"\r\n    }\r\n}",
+              "raw": "{\r\n    \"id\": \"mosip.vid.update\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"{{utcTime}}Z\",\r\n    \"request\": {\r\n        \"vidStatus\": \"REVOKED\"\r\n    }\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2039,7 +2000,7 @@
             "description": "Issue credential request",
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"id\": \"mosip.credential.request\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"${utcTime}Z\",\r\n    \"request\": {\r\n        \"id\": \"${uin}\",\r\n        \"credentialType\": \"auth\",\r\n        \"issuer\": \"mpartner-default-auth\",\r\n        \"recepiant\": \"\",\r\n        \"user\": \"\",\r\n        \"encrypt\": false,\r\n        \"encryptionKey\": \"\",\r\n        \"sharableAttributes\": [\r\n            \"fullName\",\r\n            \"dateOfBirth\",\r\n            \"UIN\"\r\n        ],\r\n        \"additionalData\": {}\r\n    }\r\n}",
+              "raw": "{\r\n    \"id\": \"mosip.credential.request\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"{{utcTime}}Z\",\r\n    \"request\": {\r\n        \"id\": \"{{uin}}\",\r\n        \"credentialType\": \"auth\",\r\n        \"issuer\": \"mpartner-default-auth\",\r\n        \"recepiant\": \"\",\r\n        \"user\": \"\",\r\n        \"encrypt\": false,\r\n        \"encryptionKey\": \"\",\r\n        \"sharableAttributes\": [\r\n            \"fullName\",\r\n            \"dateOfBirth\",\r\n            \"UIN\"\r\n        ],\r\n        \"additionalData\": {}\r\n    }\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2286,7 +2247,7 @@
             "description": "Credential status WebSub callback",
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"publisher\": \"CREDENTIAL_SERVICE\",\r\n    \"topic\": \"CREDENTIAL_STATUS_UPDATE\",\r\n    \"publishedOn\": \"${utcTime}Z\",\r\n    \"event\": {\r\n        \"id\": \"event-${identifier}\",\r\n        \"requestId\": \"${requestId}\",\r\n        \"timestamp\": \"${utcTime}Z\",\r\n        \"status\": \"ISSUED\",\r\n        \"url\": \"${protocol}://${serverIP}/v1/credentialservice/credentials/download\"\r\n    }\r\n}",
+              "raw": "{\r\n    \"publisher\": \"CREDENTIAL_SERVICE\",\r\n    \"topic\": \"CREDENTIAL_STATUS_UPDATE\",\r\n    \"publishedOn\": \"{{utcTime}}Z\",\r\n    \"event\": {\r\n        \"id\": \"event-{{identifier}}\",\r\n        \"requestId\": \"{{requestId}}\",\r\n        \"timestamp\": \"{{utcTime}}Z\",\r\n        \"status\": \"ISSUED\",\r\n        \"url\": \"{{protocol}}://{{serverIP}}/v1/credentialservice/credentials/download\"\r\n    }\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2408,7 +2369,7 @@
             "description": "From JMeter IDRepo_Test_Script_v04_jannaLocal.jmx",
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"id\": \"mosip.credential.request\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"${utcTime}Z\",\r\n    \"request\": {\r\n        \"id\": \"${uin}\",\r\n        \"credentialType\": \"auth\",\r\n        \"issuer\": \"mpartner-default-auth\",\r\n        \"recepiant\": \"\",\r\n        \"user\": \"\",\r\n        \"encrypt\": false,\r\n        \"encryptionKey\": \"\",\r\n        \"sharableAttributes\": [\r\n            \"fullName\",\r\n            \"dateOfBirth\",\r\n            \"UIN\"\r\n        ],\r\n        \"additionalData\": {}\r\n    }\r\n}",
+              "raw": "{\r\n    \"id\": \"mosip.credential.request\",\r\n    \"version\": \"v1\",\r\n    \"requesttime\": \"{{utcTime}}Z\",\r\n    \"request\": {\r\n        \"id\": \"{{uin}}\",\r\n        \"credentialType\": \"auth\",\r\n        \"issuer\": \"mpartner-default-auth\",\r\n        \"recepiant\": \"\",\r\n        \"user\": \"\",\r\n        \"encrypt\": false,\r\n        \"encryptionKey\": \"\",\r\n        \"sharableAttributes\": [\r\n            \"fullName\",\r\n            \"dateOfBirth\",\r\n            \"UIN\"\r\n        ],\r\n        \"additionalData\": {}\r\n    }\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2610,7 +2571,7 @@
             "description": "Issue verifiable credential",
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"id\": \"${identifier}\",\r\n    \"credentialType\": \"euin\",\r\n    \"requestId\": \"req-${identifier}\",\r\n    \"issuer\": \"mpartner-default-print\",\r\n    \"recepiant\": \"mpartner-default-print\",\r\n    \"user\": \"resident-user\",\r\n    \"encrypt\": true,\r\n    \"encryptionKey\": \"encryptionKey\",\r\n    \"sharableAttributes\": [\r\n        \"name\",\r\n        \"dob\",\r\n        \"gender\"\r\n    ],\r\n    \"additionalData\": {\r\n        \"key1\": \"value1\"\r\n    }\r\n}",
+              "raw": "{\r\n    \"id\": \"{{identifier}}\",\r\n    \"credentialType\": \"euin\",\r\n    \"requestId\": \"req-{{identifier}}\",\r\n    \"issuer\": \"mpartner-default-print\",\r\n    \"recepiant\": \"mpartner-default-print\",\r\n    \"user\": \"resident-user\",\r\n    \"encrypt\": true,\r\n    \"encryptionKey\": \"encryptionKey\",\r\n    \"sharableAttributes\": [\r\n        \"name\",\r\n        \"dob\",\r\n        \"gender\"\r\n    ],\r\n    \"additionalData\": {\r\n        \"key1\": \"value1\"\r\n    }\r\n}",
               "options": {
                 "raw": {
                   "language": "json"

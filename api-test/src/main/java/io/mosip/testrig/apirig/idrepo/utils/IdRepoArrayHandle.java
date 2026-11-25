@@ -55,6 +55,10 @@ public class IdRepoArrayHandle {
 	private static String schemaHandleValue(String handle) {
 		String generated = IdRepoUtil.generateSchemaFieldValue(handle);
 		if (generated == null || generated.isBlank()) {
+			// Email validators are often inline (no $ref); never fall back to bare nextRandomId().
+			if (handle != null && handle.equals(resolveEmailFieldName())) {
+				return nextRandomId() + "@mosip.net";
+			}
 			return nextRandomId();
 		}
 		return generated;
@@ -62,18 +66,25 @@ public class IdRepoArrayHandle {
 
 	/**
 	 * Replaces array-handle {@code value} fields with a value from that field's IdSchema validator.
-	 * String handles (email/phone) are left to {@code $EMAILVALUE$} / {@code $PHONENUMBERFORIDENTITY$}.
-	 * Validators that live behind a schema {@code $ref} are resolved by apitest-commons.
+	 * <p>
+	 * Email keeps the script-rendered value ({@code $EMAILVALUE$} or a YAML negative) so positive
+	 * cases stay valid and negative cases keep their invalid payload. Newly appended email entries
+	 * use {@link #schemaHandleValue}. Other handles are uniquified per run.
+	 * </p>
 	 */
 	private static void uniquifyArrayHandleValues(JSONObject identity) {
 		if (identity == null || !identity.has("selectedHandles")
 				|| !(identity.get("selectedHandles") instanceof JSONArray)) {
 			return;
 		}
+		String emailField = resolveEmailFieldName();
 		JSONArray selectedHandles = identity.getJSONArray("selectedHandles");
 		for (int i = 0; i < selectedHandles.length(); i++) {
 			String handle = selectedHandles.optString(i, null);
 			if (handle == null || !identity.has(handle) || !(identity.get(handle) instanceof JSONArray)) {
+				continue;
+			}
+			if (handle.equals(emailField)) {
 				continue;
 			}
 			JSONArray handleArray = identity.getJSONArray(handle);
@@ -647,7 +658,8 @@ public class IdRepoArrayHandle {
 				|| testCaseName.contains("_withusedhandlevalue")
 				|| testCaseName.contains("_withdeletehandlefromrecord")
 				|| testCaseName.contains("_withcasesensitivehandles")
-				|| testCaseName.contains("_withmultiplehandleswithoutvalue");
+				|| testCaseName.contains("_withmultiplehandleswithoutvalue")
+				|| testCaseName.contains("_withArrayOfStringNotInSchema");
 	}
 
 	/** True for scenarios that rewrite the email field as an {@code [{value, tags}]} array. */
@@ -822,9 +834,9 @@ public class IdRepoArrayHandle {
 	/** Appends two more untagged values to an existing array-typed handle, to prove tags don't gate status. */
 	private static void applyAppendUntaggedValues(JSONArray handleArray, String handle) {
 		JSONObject second = new JSONObject();
-		second.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+		second.put("value", schemaHandleValue(handle));
 		JSONObject third = new JSONObject();
-		third.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+		third.put("value", schemaHandleValue(handle));
 		handleArray.put(second);
 		handleArray.put(third);
 	}
@@ -916,7 +928,7 @@ public class IdRepoArrayHandle {
 		// Positive: five entries, only the first tagged; values generated to satisfy the handle validator.
 		for (int j = 0; j < 4; j++) {
 			JSONObject obj = new JSONObject();
-			obj.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+			obj.put("value", schemaHandleValue(handle));
 			if (j < 1) {
 				obj.put("tags", new JSONArray().put("handle"));
 			}
@@ -1047,10 +1059,10 @@ public class IdRepoArrayHandle {
 		if (handleArray.length() < 3) {
 			// Positive: appended values generated to satisfy the handle's own validator.
 			JSONObject secondValue = new JSONObject();
-			secondValue.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+			secondValue.put("value", schemaHandleValue(handle));
 			secondValue.put("tags", new JSONArray().put("handle"));
 			JSONObject thirdValue = new JSONObject();
-			thirdValue.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+			thirdValue.put("value", schemaHandleValue(handle));
 			handleArray.put(secondValue);
 			handleArray.put(thirdValue);
 		}
@@ -1162,7 +1174,7 @@ public class IdRepoArrayHandle {
 				handleArray.getJSONObject(j).put("value", "mosip_update_" + RANDOM_ID + "@mosip.net");
 			} else {
 				// Positive update — new value generated to satisfy the handle's own validator.
-				handleArray.getJSONObject(j).put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+				handleArray.getJSONObject(j).put("value", schemaHandleValue(handle));
 			}
 		}
 	}

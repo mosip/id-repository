@@ -49,6 +49,8 @@
 		<springdoc.openapi.maven.plugin.version>0.2</springdoc.openapi.maven.plugin.version>
 		<central.publishing.maven.plugin.version>0.7.0</central.publishing.maven.plugin.version>
 		<argLine></argLine>
+		<!-- Default false; CLI -DskipTests=true is honoured by surefire (#1751). -->
+		<skipTests>false</skipTests>
 		<sonar.coverage.exclusions>
 			**/constant/**,**/config/**,**/httpfilter/**,**/cache/**,**/dto/**,**/entity/**,**/model/**,**/exception/**,**/repository/**,**/security/**,**/*Config.java,**/*BootApplication.java,**/*VertxApplication.java,**/cbeffutil/**,**/bootstrap/**,**/idrepository/credential/**,**/idrepository/identity/**,**/idrepository/manager/**,**/idrepository/pipeline/**,**/idrepository/vid/**,**/idrepository/saltgenerator/**,**/idrepository/core/helper/RestHelper.java
 		</sonar.coverage.exclusions>
@@ -312,8 +314,8 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${maven.surefire.plugin.version}</version>
 				<configuration>
-					<skipTests>false</skipTests>
-					<skip>false</skip>
+					<!-- Honour -DskipTests / -Dmaven.test.skip from CLI (#1751). -->
+					<skipTests>${skipTests}</skipTests>
 					<argLine>${argLine}</argLine>
 				</configuration>
 			</plugin>

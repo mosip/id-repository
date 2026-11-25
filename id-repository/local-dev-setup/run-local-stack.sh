@@ -15,6 +15,7 @@
 #   ./run-local-stack.sh run          # rebuild + start id-repo on host (run-idrepo-local.sh)
 #   ./run-local-stack.sh status       # docker compose ps
 #   ./run-local-stack.sh smoke        # health / UIN / idschema curls
+#   ./run-local-stack.sh idschema …    # switch WireMock Id Schema body
 #   ./run-local-stack.sh logs [svc]   # follow logs (default: keymanager-service)
 #   ./run-local-stack.sh help
 #
@@ -308,12 +309,33 @@ ensure_jar() {
 # ---------------------------------------------------------------------------
 # Docker lifecycle
 # ---------------------------------------------------------------------------
+# Wait until WireMock and keymanager answer before printing "Deps ready".
+wait_for_deps_healthy() {
+  local timeout_s="${DEPS_HEALTH_TIMEOUT_S:-180}"
+  local interval_s=5
+  local elapsed=0
+  info "Waiting up to ${timeout_s}s for WireMock (:8082) and keymanager (:8088)..."
+  while (( elapsed < timeout_s )); do
+    if curl -sf "http://localhost:8082/__admin/mappings" >/dev/null 2>&1 \
+        && curl -sf "http://localhost:8088/v1/keymanager/actuator/health" >/dev/null 2>&1; then
+      info "Deps healthy (WireMock :8082, keymanager :8088)."
+      return 0
+    fi
+    sleep "$interval_s"
+    elapsed=$((elapsed + interval_s))
+  done
+  warn "Timed out after ${timeout_s}s waiting for deps. Check: docker compose -f deps/docker-compose.yml ps"
+  compose ps || true
+  return 1
+}
+
 cmd_up() {
   check_docker
   cmd_prep
   info "Starting Docker deps (docker compose up -d --remove-orphans)..."
   compose up -d --remove-orphans
   compose ps
+  wait_for_deps_healthy || warn "Continuing despite unhealthy deps — host app may fail at startup."
   log ""
   info "Deps ready. Start ID-Repository on the host:"
   info "  ./run-idrepo-local.sh          # rebuild + start (Mac/Linux/Git Bash)"
@@ -336,8 +358,81 @@ cmd_restart() {
     keymanager-service
 
   compose ps
+  wait_for_deps_healthy || warn "Continuing despite unhealthy deps — host app may fail at startup."
   info "Deps ready. Restart the host app: ./run-idrepo-local.sh"
   info "Health: curl http://localhost:8090/actuator/health"
+}
+
+# Switch the WireMock Id Schema body file and recreate mock-service.
+# Usage: ./run-local-stack.sh idschema [default|email-handle|diff-handle]
+# After switching, restart the host app so its schema cache reloads.
+cmd_idschema() {
+  local variant="${1:-}"
+  local files_dir="$COMPOSE_DIR/wiremock/__files"
+  local active="$files_dir/idschema-latest-active.json"
+  local src=""
+
+  case "$variant" in
+    ""|list|ls|-h|--help)
+      log "Local Id Schema variants (active → $active):"
+      log "  default        email+phone string handles; functionalId array   (local api-test default)"
+      log "  email-handle   email array handle [{value,tags}]; phone string  (schema_with_email_handle)"
+      log "  diff-handle    licenseNo string + functionalId array handles;   (schema_with_diff_handle)"
+      log "                 email/phone are NOT handles"
+      log ""
+      log "Usage: $0 idschema <default|email-handle|diff-handle>"
+      log "Then restart the host app: ./run-idrepo-local.sh  (or run-idrepo-local.bat)"
+      if [[ -f "$active" ]]; then
+        if grep -q 'schema_with_email_handle\|"MOSIP Identity Schema with Handle"' "$active" 2>/dev/null \
+            || grep -q '"description": "MOSIP Identity Schema with Handle' "$active" 2>/dev/null; then
+          info "Currently active: email-handle"
+        elif grep -q '"licenseNo"' "$active" 2>/dev/null; then
+          info "Currently active: diff-handle"
+        else
+          info "Currently active: default"
+        fi
+      fi
+      return 0
+      ;;
+    default)
+      src="$files_dir/idschema-latest-default.json"
+      ;;
+    email-handle|email_handle|email-array|email_array|email)
+      # email-array kept as alias for #1749 wording
+      src="$files_dir/idschema-latest-email-handle.json"
+      [[ -f "$src" ]] || src="$files_dir/idschema-latest-email-array.json"
+      variant="email-handle"
+      ;;
+    diff-handle|diff_handle|diff)
+      src="$files_dir/idschema-latest-diff-handle.json"
+      variant="diff-handle"
+      ;;
+    *)
+      die "Unknown schema variant: $variant (use: default | email-handle | diff-handle)"
+      ;;
+  esac
+
+  [[ -f "$src" ]] || die "Missing schema body file: $src"
+  cp -f "$src" "$active"
+  info "Active Id Schema → $variant ($active)"
+
+  if check_docker 2>/dev/null; then
+    info "Recreating WireMock so it reloads __files..."
+    compose up -d --force-recreate --no-deps mock-service
+    local waited=0
+    while (( waited < 60 )); do
+      if curl -sf "http://localhost:8082/v1/masterdata/idschema/latest?schemaVersion=0" >/dev/null 2>&1; then
+        break
+      fi
+      sleep 2
+      waited=$((waited + 2))
+    done
+  else
+    warn "Docker not available — copied active file only; recreate mock-service later."
+  fi
+
+  info "Verify: curl -s http://localhost:8082/v1/masterdata/idschema/latest?schemaVersion=0 | head"
+  warn "Restart the host id-repository app so it drops the cached schema."
 }
 
 cmd_run() {
@@ -416,6 +511,7 @@ Commands:
   build       mvn package id-repository-service (-DskipTests)
   status      docker compose ps -a
   smoke       HTTP health / UIN / idschema checks (needs host app running)
+  idschema     Switch local Id Schema: idschema [default|email-handle|diff-handle]
   logs        Follow logs (default: keymanager-service)
   help        Show this help
 
@@ -456,6 +552,7 @@ main() {
     build)        cmd_build ;;
     status|ps)    cmd_status ;;
     smoke|check)  cmd_smoke ;;
+    idschema|schema) cmd_idschema "${1:-}" ;;
     logs)         cmd_logs "${1:-}" ;;
     help|-h|--help) cmd_help ;;
     *)

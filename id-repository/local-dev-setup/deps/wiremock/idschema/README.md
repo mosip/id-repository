@@ -29,7 +29,7 @@ Alias: `email-array` → `email-handle`.
 
 Run from `id-repository/local-dev-setup/` (nested Maven tree). Also summarized in
 [`../../../README.md`](../../../README.md#qa-test-with-a-different-id-schema) and
-[`../../../../api-test/README.md`](../../../../api-test/README.md) (Step B2).
+[`../../../../../api-test/README.md`](../../../../../api-test/README.md) (Step B2).
 
 ### Windows QA loop (`run-idrepo-local.bat`)
 

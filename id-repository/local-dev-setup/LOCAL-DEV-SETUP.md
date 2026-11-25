@@ -68,11 +68,11 @@ already have the repository, begin at step 2.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/mosip/id-repository.git
+# master/develop do not ship local-dev-setup yet — clone the consolidation branch
+# (or the release branch once this lands).
+git clone --branch IDREPO-1583-consolidate-idrepo-services https://github.com/mosip/id-repository.git
 cd id-repository
 ```
-
-Check out the branch you intend to develop.
 
 ### 2. Build the service
 
@@ -82,8 +82,9 @@ From the Git repository root:
 # Enter the Maven parent directory.
 cd id-repository
 
-# Build the service and its required modules.
-mvn -pl id-repository-service -am clean package -DskipTests -Dgpg.skip=true
+# Stop any host id-repository JVM first (Windows locks the fat jar during repackage).
+# Prefer -Dmaven.test.skip=true (skips compile+run of tests); -DskipTests also works.
+mvn -pl id-repository-service -am clean package -Dmaven.test.skip=true -Dgpg.skip=true
 ```
 
 The second `id-repository` directory is the Maven parent inside the cloned
@@ -202,8 +203,16 @@ java \
   -Dspring.cloud.config.override-none=true \
   -Dspring.cloud.loadbalancer.enabled=false \
   -Dserver.port=8090 \
-  -jar id-repository-service/target/id-repository-service-*.jar
+  -jar id-repository-service/target/id-repository-service-1.4.1-SNAPSHOT.jar
 ```
+
+Do **not** use a bare `id-repository-service-*.jar` glob: Maven also builds
+`-sources.jar` / `-javadoc.jar`, and `java` may pick those and fail with
+`no main manifest attribute`. Prefer the explicit SNAPSHOT fat jar (or a glob
+that excludes `-sources` / `-javadoc`, as `run-local-stack.sh` does).
+
+Stop the host app before rebuilding — on Windows, an in-use fat jar leaves a
+non-runnable plain jar after a failed `spring-boot:repackage`.
 
 The application uses `application-local.properties` to reach dependencies on
 localhost. For the script-driven startup, see the

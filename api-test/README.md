@@ -21,11 +21,22 @@ Windows: Git Bash optional. Linux: also put `settings.xml` under Maven `/conf` i
 Clone:
 
 ```sh
-git clone https://github.com/mosip/id-repository.git
+# master/develop do not ship local-dev-setup yet — use the consolidation branch
+# (or the release branch once this lands).
+git clone --branch IDREPO-1583-consolidate-idrepo-services https://github.com/mosip/id-repository.git
 cd id-repository
 ```
 
 Paths below are from that **git clone root**. Nested Java/Maven lives in `id-repository/`; this rig lives in `api-test/`.
+
+### Network requirements
+
+- **First setup needs internet:** Docker image pulls, Maven SNAPSHOT deps, and
+  `run-local-stack.sh prep` cloning `mosip-ref-impl` to build
+  `kernel-ref-idobjectvalidator.jar`.
+- **After the first successful setup**, deps and the host app can run offline
+  if images and the local Maven cache are already present.
+- **VPN / WireGuard is not required** for local api-test against this stack.
 
 ---
 

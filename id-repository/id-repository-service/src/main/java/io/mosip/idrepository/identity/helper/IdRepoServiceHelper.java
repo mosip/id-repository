@@ -1,6 +1,7 @@
 package io.mosip.idrepository.identity.helper;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
@@ -276,6 +277,36 @@ public class IdRepoServiceHelper {
      * @return missing-value paths in schema order; empty when every object item has a value
      * @throws IdRepoAppException when the schema for the identity version cannot be loaded
      */
+    /**
+     * Flattens stored {@code verifiedAttributes} to claim-name strings for retrieve responses.
+     * <p>
+     * V1 rows are already claim-name strings. V2 rows are {@code VerificationMetadata} objects;
+     * their {@code claims} lists are expanded so Jackson can serialize {@code List<String>}
+     * ({@code BaseRequestResponseDTO.verifiedAttributes}).
+     * </p>
+     *
+     * @param node {@code verifiedAttributes} JSON node; may be {@code null}
+     * @return claim names, or {@code null} when absent / not an array
+     */
+    public static List<String> toVerifiedAttributeNames(JsonNode node) {
+        if (node == null || node.isNull() || !node.isArray()) {
+            return null;
+        }
+        List<String> names = new ArrayList<>();
+        for (JsonNode item : node) {
+            if (item.isTextual()) {
+                names.add(item.asText());
+            } else if (item.isObject() && item.has("claims") && item.get("claims").isArray()) {
+                for (JsonNode claim : item.get("claims")) {
+                    if (claim.isTextual() && StringUtils.hasText(claim.asText())) {
+                        names.add(claim.asText());
+                    }
+                }
+            }
+        }
+        return names;
+    }
+
     @SuppressWarnings("unchecked")
     public List<String> findMissingHandleArrayItemValuePaths(Map<String, Object> requestMap)
             throws IdRepoAppException {
