@@ -97,6 +97,40 @@ curl.exe -s http://localhost:8082/v1/idgenerator/uin
 
 All four should respond. UIN from idgenerator must be Verhoeff-valid (do not invent a UIN).
 
+### Step B2 — Optional: switch Id Schema (local QA)
+
+WireMock serves the Id Schema. Default = string `email`/`phone` handles. To run
+email **array**-handle cases (or licenseNo / diff-handle), switch before the
+host is up — or stop/restart the host after switching (schema is cached).
+
+Full guide: [`../id-repository/local-dev-setup/deps/wiremock/idschema/README.md`](../id-repository/local-dev-setup/deps/wiremock/idschema/README.md).
+
+**Windows:**
+
+```bat
+cd id-repository\id-repository\local-dev-setup
+bash run-local-stack.sh idschema email-handle
+REM also: default | diff-handle
+run-idrepo-local.bat stop
+run-idrepo-local.bat run
+```
+
+**Linux / macOS / Git Bash:**
+
+```sh
+cd id-repository/id-repository/local-dev-setup
+./run-local-stack.sh idschema email-handle   # or default | diff-handle
+./run-idrepo-local.sh stop && ./run-idrepo-local.sh run
+```
+
+| Active schema | api-test effect |
+|---------------|-----------------|
+| `default` | Most cases; email array-handle cases **skipped** |
+| `email-handle` | Email array-handle cases **run** |
+| `diff-handle` | licenseNo / functionalId-oriented handle cases |
+
+Verify: `curl.exe -s "http://localhost:8082/v1/masterdata/idschema/latest?schemaVersion=0"`
+
 ### Step C — Run api-test
 
 Secrets default to local-dev values (`mosip123`, `local-dev-testrig-secret`, …). Optional override: copy `api-test/run-local.env.example` to gitignored `api-test/.env.local`.

@@ -1,0 +1,234 @@
+openapi: 3.0.1
+info:
+  title: MOSIP ID-Repository VID Service API
+  description: >
+    VID lifecycle APIs exposed by the consolidated id-repository-service under
+    `/idrepository/v1` (create, retrieve, update, regenerate, deactivate/reactivate, draft).
+  version: '1.2.1'
+  contact:
+    name: MOSIP Development Team
+    email: dev@mosip.io
+    url: https://www.mosip.io
+  license:
+    name: MPL 2.0
+    url: https://www.mozilla.org/en-US/MPL/2.0/
+
+servers:
+  - url: 'https://api-internal.{env}.mosip.net/idrepository/v1'
+    description: Cluster (Service identity.idrepo)
+    variables:
+      env:
+        default: collab
+  - url: 'http://localhost:8090/idrepository/v1'
+    description: Local consolidated id-repository-service
+
+tags:
+  - name: vid-controller
+    description: VID create / retrieve / update / regenerate / deactivate
+
+paths:
+  /vid:
+    post:
+      tags: [vid-controller]
+      summary: Create VID
+      operationId: createVid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VidRequestWrapper'
+      responses:
+        '200':
+          description: VID created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VidResponseWrapper'
+        '401':
+          description: Unauthorized
+
+  /draft/vid:
+    post:
+      tags: [vid-controller]
+      summary: Create draft VID
+      operationId: createDraftVid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VidRequestWrapper'
+      responses:
+        '200':
+          description: Draft VID created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VidResponseWrapper'
+        '401':
+          description: Unauthorized
+
+  /vid/{VID}:
+    get:
+      tags: [vid-controller]
+      summary: Retrieve UIN for a VID
+      operationId: retrieveUinByVid
+      parameters:
+        - name: VID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: UIN for the VID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VidResponseWrapper'
+        '401':
+          description: Unauthorized
+    patch:
+      tags: [vid-controller]
+      summary: Update VID status
+      operationId: updateVidStatus
+      parameters:
+        - name: VID
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VidRequestWrapper'
+      responses:
+        '200':
+          description: VID status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VidResponseWrapper'
+        '401':
+          description: Unauthorized
+
+  /vid/uin/{UIN}:
+    get:
+      tags: [vid-controller]
+      summary: List VIDs for a UIN
+      operationId: retrieveVidsByUin
+      parameters:
+        - name: UIN
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: VIDs for the UIN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VidResponseWrapper'
+        '401':
+          description: Unauthorized
+
+  /vid/{VID}/regenerate:
+    post:
+      tags: [vid-controller]
+      summary: Regenerate VID
+      operationId: regenerateVid
+      parameters:
+        - name: VID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: VID regenerated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VidResponseWrapper'
+        '401':
+          description: Unauthorized
+
+  /vid/deactivate:
+    post:
+      tags: [vid-controller]
+      summary: Deactivate VIDs for a UIN
+      operationId: deactivateVids
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VidRequestWrapper'
+      responses:
+        '200':
+          description: VIDs deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VidResponseWrapper'
+        '401':
+          description: Unauthorized
+
+  /vid/reactivate:
+    post:
+      tags: [vid-controller]
+      summary: Reactivate VIDs for a UIN
+      operationId: reactivateVids
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VidRequestWrapper'
+      responses:
+        '200':
+          description: VIDs reactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VidResponseWrapper'
+        '401':
+          description: Unauthorized
+
+components:
+  schemas:
+    VidRequestWrapper:
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        requesttime:
+          type: string
+          format: date-time
+        request:
+          type: object
+          additionalProperties: true
+    VidResponseWrapper:
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        responsetime:
+          type: string
+          format: date-time
+        response:
+          type: object
+          additionalProperties: true
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: true

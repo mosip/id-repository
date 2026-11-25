@@ -132,6 +132,29 @@ curl -s "http://localhost:8082/v1/masterdata/idschema/latest?schemaVersion=0"
 | idgenerator UIN | JSON with a numeric `uin` |
 | idschema | HTTP 200 with `schemaJson` |
 
+### 5b. QA: switch Id Schema (optional)
+
+For local QA against another handle layout (email array-handle, licenseNo, …),
+switch WireMock’s schema, then **restart** the host app:
+
+```bash
+# From id-repository/local-dev-setup/
+./run-local-stack.sh idschema email-handle   # or: default | diff-handle
+./run-idrepo-local.sh stop && ./run-idrepo-local.sh run
+```
+
+Windows cmd:
+
+```bat
+bash run-local-stack.sh idschema email-handle
+run-idrepo-local.bat stop
+run-idrepo-local.bat run
+```
+
+Variants, verify curl, and api-test expectations:
+[ID schema guide](deps/wiremock/idschema/README.md) and
+[README — QA: test with a different Id Schema](README.md#qa-test-with-a-different-id-schema).
+
 ### 6. Swagger / Add Identity
 
 For Swagger URLs, see [Swagger](README.md#swagger). For authentication

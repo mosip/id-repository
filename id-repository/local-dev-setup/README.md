@@ -327,6 +327,55 @@ For local and deployed-environment test instructions, see the
 
 ---
 
+## QA: test with a different Id Schema
+
+Local Id Schema is served by WireMock. Switch it **before** (or restart after)
+`run-idrepo-local.bat run`. Full detail:
+[`deps/wiremock/idschema/README.md`](deps/wiremock/idschema/README.md).
+
+| Variant | Handles | Use when |
+|---------|---------|----------|
+| `default` | `email`/`phone` string; `functionalId` array | Normal local / most api-test |
+| `email-handle` | `email` array `[{value,tags}]`; `phone` string | Email array-handle api-test cases |
+| `diff-handle` | `licenseNo` + `functionalId`; email/phone not handles | Diff-handle / licenseNo cases |
+
+### Windows (cmd)
+
+```bat
+cd id-repository\id-repository\local-dev-setup
+
+REM 1) Deps up (skip if already running)
+run-idrepo-local.bat up
+
+REM 2) Switch schema (recreates WireMock)
+bash run-local-stack.sh idschema email-handle
+REM    also: default | diff-handle
+
+REM 3) Restart host so schema cache reloads
+run-idrepo-local.bat stop
+run-idrepo-local.bat run
+```
+
+### macOS / Linux / Git Bash
+
+```bash
+cd id-repository/id-repository/local-dev-setup
+./run-local-stack.sh up
+./run-local-stack.sh idschema email-handle   # or default | diff-handle
+./run-idrepo-local.sh stop
+./run-idrepo-local.sh run
+```
+
+### Verify, then test
+
+```bat
+curl.exe -s "http://localhost:8082/v1/masterdata/idschema/latest?schemaVersion=0"
+```
+
+Then use Swagger / Postman, or from repo root `api-test\run-local-smoke.bat`.
+
+---
+
 ## Other stack commands (`run-local-stack.sh`)
 
 Use Git Bash / WSL / macOS / Linux. Windows cmd can still `bash run-local-stack.sh <cmd>` for Docker-only steps, or stay on the `.bat` for `up` / `wipe` / `smoke`.
@@ -339,6 +388,7 @@ Use Git Bash / WSL / macOS / Linux. Windows cmd can still `bash run-local-stack.
 | `wipe` / `wipe-low-mem` | `down -v` then `up` |
 | `prep` | PKCS12 + validator jar (`keys-generator.jar` only if init.sql has no static seed) |
 | `build` | `mvn package` skip tests (WSL may shell out to Windows Maven) |
+| `idschema` | Switch Id Schema: `idschema [default\|email-handle\|diff-handle]` |
 | `status` / `logs` | `docker compose ps` / follow logs (default `keymanager-service`) |
 
 After jar or `application-local.properties` changes, restart the **host** JVM (`stop` then `run` or `start`). Recreate WireMock only when stubs change:
@@ -371,7 +421,7 @@ The application must be running to access these pages.
 | API | UI |
 |-----|-----|
 | Identity | http://localhost:8090/idrepository/v1/identity/swagger-ui/index.html |
-| VID | http://localhost:8090/idrepository/v1/vid/swagger-ui/index.html |
+| VID | http://localhost:8090/idrepository/v1/swagger-ui/index.html |
 | Credential service | http://localhost:8090/v1/credentialservice/swagger-ui/index.html |
 | Credential request | http://localhost:8090/v1/credentialrequest/swagger-ui/index.html |
 
@@ -392,7 +442,9 @@ local-dev-setup/
     ├── init.sql
     ├── additional_jars/      ← kernel-ref-idobjectvalidator.jar (loader.path)
     ├── mosip-config/
-    ├── wiremock/mappings/id-repository.json
+    ├── wiremock/mappings/    ← id-repository.json + idschema-latest.json
+    ├── wiremock/__files/     ← idschema-latest-*.json (active schema body)
+    ├── wiremock/idschema/    ← schema switch guide + bare schema sources
     ├── keymanager/           ← DDL + bootstrap (static key DML is inlined in init.sql)
     └── websub-partner-ack/
 ```
