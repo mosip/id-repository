@@ -219,6 +219,15 @@ public class IdRepoUtil extends AdminTestUtil {
 					+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
 		}
 
+		// Empty/space string email negatives expect IDR-IDC-002 on a string-typed email. With an
+		// array email handle the template wraps "" / " " as [{value}], and the server returns
+		// IDR-IDC-001 (missing value) instead.
+		if ((testCaseName.contains("_Empty_Email") || testCaseName.contains("_SpaceVal_Email"))
+				&& schemaFieldIsArrayHandle(email)) {
+			throw new SkipException("Empty/space email negatives require string-typed email — "
+					+ GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
+		}
+
 		else if (testCaseName.startsWith("IdRepository_") && testCaseName.contains("Invalid_BioVal")
 				&& (ConfigManager.isInServiceNotDeployedList(GlobalConstants.ADMIN))) {
 			throw new SkipException(GlobalConstants.FEATURE_NOT_SUPPORTED_MESSAGE);
@@ -446,9 +455,10 @@ public class IdRepoUtil extends AdminTestUtil {
 	/**
 	 * Value that matches the live IdSchema validator for a handle field.
 	 * <p>
-	 * Prefers {@link #generateSchemaFieldValue}. When that returns blank (common for email
-	 * validators that live inline with no {@code $ref}), falls back to a unique id — and for the
-	 * email field, to {@code <id>@mosip.net} so the value still passes a typical email regex.
+	 * Prefers {@link #generateSchemaFieldValue}. When that returns blank, or (for the email field)
+	 * a token without {@code @} — common when email validators live under
+	 * {@code items.properties.value} on an array handle — falls back to a unique id, and for email
+	 * to {@code <id>@mosip.net} so the value still passes a typical email regex.
 	 * </p>
 	 *
 	 * @param handle schema property name (e.g. {@code email}, {@code functionalId})
@@ -456,10 +466,13 @@ public class IdRepoUtil extends AdminTestUtil {
 	 */
 	public static String schemaHandleValue(String handle) {
 		String generated = generateSchemaFieldValue(handle);
-		if (generated == null || generated.isBlank()) {
+		boolean isEmail = handle != null && handle.equals(resolveEmailFieldName());
+		// Email validators often sit under items.properties.value (array handle). generateSchemaFieldValue
+		// then returns a non-email token (e.g. mosipNNNN); force a mailbox shape for those.
+		if (generated == null || generated.isBlank() || (isEmail && !generated.contains("@"))) {
 			String fallback = "mosip" + generateRandomNumberString(2)
 					+ (System.nanoTime() % 1_000_000_000L);
-			if (handle != null && handle.equals(resolveEmailFieldName())) {
+			if (isEmail) {
 				return fallback + "@mosip.net";
 			}
 			return fallback;

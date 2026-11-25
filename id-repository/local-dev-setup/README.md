@@ -190,10 +190,10 @@ Stops any host JVM, packages `id-repository-service` (`-Dmaven.test.skip=true -D
 java -Dloader.path=deps\additional_jars\kernel-ref-idobjectvalidator.jar
      -Dspring.profiles.active=default,local
      -Dserver.port=8090
-     -jar id-repository-service-*.jar
+     -jar id-repository-service-1.4.1-SNAPSHOT.jar
 ```
 
-Logs: `.local/logs/` (not `logs/`). Use after pom or Java changes. Do **not** use `start` until that rebuild has finished. The scripts pick the fat jar (excluding `-sources` / `-javadoc`); a bare shell glob of `id-repository-service-*.jar` can hit those and fail with `no main manifest attribute`.
+Logs: `.local/logs/` (not `logs/`). Use after pom or Java changes. Do **not** use `start` until that rebuild has finished. Scripts pick the fat jar (excluding `-sources` / `-javadoc`); never use a bare `id-repository-service-*.jar` glob.
 
 ### `start`
 

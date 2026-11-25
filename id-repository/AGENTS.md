@@ -1,6 +1,6 @@
 # id-repository/ (Maven parent)
 
-Spring Boot 4.1.2, Spring Cloud 2025.1.4. Versions only in the parent POM.
+Spring Boot 4.1.2 · Spring Cloud 2025.1.4 · versions only in parent POM.
 
 ```text
 id-repository/
@@ -10,13 +10,14 @@ id-repository/
 └─ local-dev-setup/               Docker deps (own AGENTS.md)
 ```
 
-Build: `mvn clean install` · service: `mvn -pl id-repository-service -am package -DskipTests -Dgpg.skip=true` (PowerShell: quote `"-Dgpg.skip=true"`).
+Build: `mvn clean install` · service: `mvn -pl id-repository-service -am package -DskipTests "-Dgpg.skip=true"` (PowerShell: quote gpg).
 
 ## Rules
 
 - Domain packages → service. Core = `core.*` only. Salt package → salt-generator only.
-- One POM per module, no duplicate `<dependency>`, never commit `effective-*.xml`.
-- `kernel-auth-adapter` once, from parent `dependencyManagement`.
-- Bean overriding is off → `@Primary` / `@Qualifier`. Never scan `io.mosip.*`.
-- Credential issuance is synchronous in-process (`InProcessCredentialClient` / `InProcessIdentityClient`). No Spring Batch credential job as a second deployment.
+- One POM / module; no duplicate `<dependency>`; never commit `effective-*.xml`.
+- `kernel-auth-adapter` once from parent `dependencyManagement`.
+- Bean overriding off → `@Primary` / `@Qualifier`. Never scan `io.mosip.*`.
+- Credential issuance in-process (`InProcessCredentialClient` / `InProcessIdentityClient`).
 - No class-level `@Transactional` on `CredentialStatusManager`.
+- Surefire: `<skipTests>${skipTests}</skipTests>` — CLI `-DskipTests` works.
