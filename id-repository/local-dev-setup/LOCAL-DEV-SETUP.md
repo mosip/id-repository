@@ -63,6 +63,12 @@ The host application requires the
 prepares it with the supplied scripts. For manual setup, follow the linked JAR
 instructions.
 
+### Network requirements
+
+First-time setup needs Internet access to clone the repository, pull Docker images, and download Maven dependencies. When the identity object validator JAR is missing, the setup script also clones the `issue-1633` branch of `mosip-ref-impl` and builds the JAR.
+
+After the images and build artifacts are available locally, you can start the local stack and run smoke checks offline. Builds that need to download dependencies or refresh snapshots require Internet access.
+
 ## Choose a setup
 
 - [Quick setup](#quick-setup) starts the standard local environment with the
@@ -266,6 +272,8 @@ If that happens, let the build finish, then rerun the tests.
 
 ### Run the API test rig
 
+See [Local ID schema](#local-id-schema) for the default handle types and the steps to switch schemas for handle-specific tests.
+
 Keep the local application and Docker dependencies running. The TestNG rig
 sends HTTP requests to the running application. From the Git repository
 root, run the local API smoke suite.
@@ -327,9 +335,28 @@ The application must be running to access these pages.
 | API | UI |
 |-----|-----|
 | Identity | http://localhost:8090/idrepository/v1/identity/swagger-ui/index.html |
-| VID | http://localhost:8090/idrepository/v1/vid/swagger-ui/index.html |
+| VID | http://localhost:8090/idrepository/v1/swagger-ui/index.html (select **MOSIP ID-Repository VID** if needed) |
 | Credential service | http://localhost:8090/v1/credentialservice/swagger-ui/index.html |
 | Credential request | http://localhost:8090/v1/credentialrequest/swagger-ui/index.html |
+
+## Local ID schema
+
+WireMock serves schema `1001`, version `0.1`, from the `masterdata-idschema-latest` stub in `deps/wiremock/mappings/id-repository.json`. The schema is stored as an escaped JSON string in `response.jsonBody.response.schemaJson`. The stub serves the same schema for every `schemaVersion` query value.
+
+In the default schema, `email` and `phone` are string handles and `functionalId` is an array handle. Email array-handle cases are skipped with the default schema and become eligible when `email` is an array of `{value, tags}` objects.
+
+1. Save a copy of the current mapping, then replace the `schemaJson` string in that stub with the schema you want to test.
+2. From `local-dev-setup/deps`, reload the mapping with `docker compose up -d --force-recreate --no-deps mock-service`. If you started the low-memory stack, use the same Compose overlay when recreating WireMock.
+3. Verify that WireMock returns the expected schema.
+
+   ```bash
+   curl -fsS "http://localhost:8082/v1/masterdata/idschema/latest?schemaVersion=0"
+   ```
+
+   Inspect `response.schemaJson` for the expected handle definitions.
+4. From `local-dev-setup`, run `./run-idrepo-local.sh stop` and then `./run-idrepo-local.sh start` to reload the host app’s schema cache. On Windows, use `run-idrepo-local.bat` with the same commands.
+
+To roll back, restore the saved mapping, recreate WireMock, and restart the host app.
 
 ## Run and debug in an IDE (optional)
 

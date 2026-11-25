@@ -99,6 +99,8 @@ All four should respond. UIN from idgenerator must be Verhoeff-valid (do not inv
 
 ### Step C — Run api-test
 
+For handle-specific cases, see [Local ID schema](../id-repository/local-dev-setup/LOCAL-DEV-SETUP.md#local-id-schema) to check the active schema or switch it before running the suite.
+
 Secrets default to local-dev values (`mosip123`, `local-dev-testrig-secret`, …). Optional override: copy `api-test/run-local.env.example` to gitignored `api-test/.env.local`.
 
 Do **not** edit `Idrepo.properties` for local runs.
