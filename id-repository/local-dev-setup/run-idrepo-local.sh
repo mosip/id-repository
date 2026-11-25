@@ -16,6 +16,9 @@
 #   ./run-idrepo-local.sh wipe            clear DB (compose down -v) then start deps
 #   ./run-idrepo-local.sh wipe-run        wipe, then rebuild + start
 #   ./run-idrepo-local.sh --no-build      alias for start
+#   ./run-idrepo-local.sh help            commands + Id Schema switch steps
+# Schema switch: ./run-local-stack.sh idschema [default|email-handle|diff-handle]
+#   then: ./run-idrepo-local.sh stop && ./run-idrepo-local.sh run
 
 set -euo pipefail
 
@@ -55,6 +58,19 @@ Checks:
   help             Show this list and exit
 
 Aliases: --build=run  --no-build=start  build=rebuild  cleardb / clear-db / reset=wipe  -h / --help=help
+
+Id Schema variants (WireMock; host app caches schema — restart after switch):
+  default          email/phone string handles; functionalId array
+  email-handle     email as array [{value,tags}]; phone string
+  diff-handle      licenseNo + functionalId; email/phone not handles
+
+Switch schema then restart host (from this folder):
+  1) $0 up
+  2) ./run-local-stack.sh idschema email-handle
+     also: default | diff-handle   (list: ./run-local-stack.sh idschema)
+  3) $0 stop
+  4) $0 run
+  Detail: deps/wiremock/idschema/README.md
 
 Wipe and rerun api-test:
   1) $0 wipe-run      (wait for the app to start)

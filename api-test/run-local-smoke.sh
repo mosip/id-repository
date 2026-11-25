@@ -220,6 +220,8 @@ LOG_FILE="$LOG_DIR/run-local-${TEST_LEVEL}-$(date +%Y%m%d_%H%M%S).log"
 
 AUTH_CERTS_DIR="$API_TEST_DIR/target/local-authcerts"
 mkdir -p "$AUTH_CERTS_DIR"
+# EmailableReport copies HTML into mountPathForReport (Idrepo-local.properties).
+mkdir -p "$API_TEST_DIR/target/local-reports"
 
 {
   echo "===== run-local-smoke start $(date -Iseconds) ====="

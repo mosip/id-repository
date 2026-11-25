@@ -421,12 +421,12 @@ docker compose -f docker-compose.yml -f docker-compose.low-mem.yml up -d --force
 
 The application must be running to access these pages.
 
-| API | UI |
-|-----|-----|
-| Identity | http://localhost:8090/idrepository/v1/identity/swagger-ui/index.html |
-| VID | http://localhost:8090/idrepository/v1/swagger-ui/index.html |
-| Credential service | http://localhost:8090/v1/credentialservice/swagger-ui/index.html |
-| Credential request | http://localhost:8090/v1/credentialrequest/swagger-ui/index.html |
+| API | UI | SpringDoc group |
+|-----|-----|-----------------|
+| Identity | http://localhost:8090/idrepository/v1/identity/swagger-ui/index.html | `identity` (pre-selected) |
+| VID | http://localhost:8090/idrepository/v1/swagger-ui/index.html | Select **`vid`** (includes `/vid/**` and `/draft/vid`) |
+| Credential service | http://localhost:8090/v1/credentialservice/swagger-ui/index.html | `credential-service` (pre-selected) |
+| Credential request | http://localhost:8090/v1/credentialrequest/swagger-ui/index.html | `credential-request` (pre-selected) |
 
 ---
 

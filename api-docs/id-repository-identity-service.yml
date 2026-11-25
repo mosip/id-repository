@@ -755,6 +755,46 @@ paths:
         '404':
           description: Not Found
 
+  # Alias of /{individualId}/update-counts (same controller mapping). Prefer the path form.
+  /update-counts:
+    get:
+      tags:
+        - id-repo-controller
+      summary: Get Remaining Update Count (alias)
+      description: >
+        Same handler as `/{individualId}/update-counts`. Without a path `individualId`
+        the service returns IDR-IDC-001 (missing individualId). Prefer
+        `GET /{individualId}/update-counts`.
+      operationId: getRemainingUpdateCountAlias
+      parameters:
+        - name: idType
+          in: query
+          required: false
+          description: Type of individual ID (UIN, VID, or RID)
+          schema:
+            type: string
+            example: "UIN"
+        - name: attribute_list
+          in: query
+          required: false
+          description: List of attributes to query update count for
+          schema:
+            type: array
+            items:
+              type: string
+            example: ["fullName"]
+      responses:
+        '200':
+          description: Remaining update counts successfully retrieved
+        '400':
+          description: Bad Request (missing individualId when using this alias)
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
   /authtypes/status:
     post:
       tags:

@@ -15,7 +15,9 @@ REM   run-idrepo-local.bat wipe            clear DB (compose down -v) then start
 REM   run-idrepo-local.bat wipe-run        wipe, then rebuild + start
 REM   run-idrepo-local.bat up              start Docker deps (keep DB)
 REM   run-idrepo-local.bat --no-build      alias for start
-REM   run-idrepo-local.bat help
+REM   run-idrepo-local.bat help            commands + Id Schema switch steps
+REM Schema switch: bash run-local-stack.sh idschema [default|email-handle|diff-handle]
+REM   then: run-idrepo-local.bat stop && run-idrepo-local.bat run
 
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
@@ -100,6 +102,19 @@ echo.
 echo   help             Show this list and exit
 echo.
 echo Aliases: --build=run  --no-build=start  build=rebuild  cleardb / clear-db / reset=wipe  -h / --help / /?=help
+echo.
+echo Id Schema variants ^(WireMock; host app caches schema — restart after switch^):
+echo   default          email/phone string handles; functionalId array
+echo   email-handle     email as array [{value,tags}]; phone string
+echo   diff-handle      licenseNo + functionalId; email/phone not handles
+echo.
+echo Switch schema then restart host ^(from this folder^):
+echo   1^) run-idrepo-local.bat up
+echo   2^) bash run-local-stack.sh idschema email-handle
+echo      also: default ^| diff-handle   ^(list: bash run-local-stack.sh idschema^)
+echo   3^) run-idrepo-local.bat stop
+echo   4^) run-idrepo-local.bat run
+echo   Detail: deps\wiremock\idschema\README.md
 echo.
 echo Wipe and rerun api-test:
 echo   1^) run-idrepo-local.bat wipe-run      ^(wait for the app to start^)
