@@ -49,15 +49,6 @@ quick setup instructions explain how to prepare it for each platform.
 Keep the [Key Manager keystore](keys/README.md); it must match the static
 database seed.
 
-### Network requirements
-
-- **First setup needs internet:** Docker image pulls, Maven SNAPSHOT downloads,
-  and `run-local-stack.sh prep` cloning `mosip-ref-impl` (branch `issue-1633`)
-  to build `kernel-ref-idobjectvalidator.jar`.
-- **After the first successful setup**, the stack can run offline if images and
-  the local Maven cache are already present.
-- **VPN / WireGuard is not required** for local deps + host app + api-test.
-
 Run all commands below from:
 
 ```text

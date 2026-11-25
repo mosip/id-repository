@@ -29,15 +29,6 @@ cd id-repository
 
 Paths below are from that **git clone root**. Nested Java/Maven lives in `id-repository/`; this rig lives in `api-test/`.
 
-### Network requirements
-
-- **First setup needs internet:** Docker image pulls, Maven SNAPSHOT deps, and
-  `run-local-stack.sh prep` cloning `mosip-ref-impl` to build
-  `kernel-ref-idobjectvalidator.jar`.
-- **After the first successful setup**, deps and the host app can run offline
-  if images and the local Maven cache are already present.
-- **VPN / WireGuard is not required** for local api-test against this stack.
-
 ---
 
 ## 1. Run locally (laptop)
