@@ -341,22 +341,26 @@ The application must be running to access these pages.
 
 ## Local ID schema
 
-WireMock serves schema `1001`, version `0.1`, from the `masterdata-idschema-latest` stub in `deps/wiremock/mappings/id-repository.json`. The schema is stored as an escaped JSON string in `response.jsonBody.response.schemaJson`. The stub serves the same schema for every `schemaVersion` query value.
+WireMock serves the active schema from `deps/wiremock/__files/idschema-latest-active.json`. The default response contains schema `1001`, version `0.1`. The response stores the schema as an escaped JSON string in `response.schemaJson`. WireMock serves the active schema for every `schemaVersion` query value.
 
 In the default schema, `email` and `phone` are string handles and `functionalId` is an array handle. Email array-handle cases are skipped with the default schema and become eligible when `email` is an array of `{value, tags}` objects.
 
-1. Save a copy of the current mapping, then replace the `schemaJson` string in that stub with the schema you want to test.
-2. From `local-dev-setup/deps`, reload the mapping with `docker compose up -d --force-recreate --no-deps mock-service`. If you started the low-memory stack, use the same Compose overlay when recreating WireMock.
-3. Verify that WireMock returns the expected schema.
+1. From `local-dev-setup`, run `./run-local-stack.sh idschema email-handle`.
+   Use `diff-handle` for the license-number variant or `default` to restore
+   the original schema. On Windows, use `bash run-local-stack.sh` with the
+   same arguments.
+   If you started the stack with `up-low-mem`, set `LOW_MEM=1` when switching
+   or restoring the schema so WireMock uses the same Compose overlay.
+2. Verify that WireMock returns the expected schema.
 
    ```bash
    curl -fsS "http://localhost:8082/v1/masterdata/idschema/latest?schemaVersion=0"
    ```
 
    Inspect `response.schemaJson` for the expected handle definitions.
-4. From `local-dev-setup`, run `./run-idrepo-local.sh stop` and then `./run-idrepo-local.sh start` to reload the host app’s schema cache. On Windows, use `run-idrepo-local.bat` with the same commands.
+3. From `local-dev-setup`, run `./run-idrepo-local.sh stop` and then `./run-idrepo-local.sh start` to reload the host app’s schema cache. On Windows, use `run-idrepo-local.bat` with the same commands.
 
-To roll back, restore the saved mapping, recreate WireMock, and restart the host app.
+To roll back, run `./run-local-stack.sh idschema default` and restart the host app.
 
 ## Run and debug in an IDE (optional)
 

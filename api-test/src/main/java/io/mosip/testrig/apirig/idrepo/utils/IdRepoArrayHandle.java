@@ -53,6 +53,9 @@ public class IdRepoArrayHandle {
 
 	/** Value that matches the live IdSchema validator for this handle field. */
 	private static String schemaHandleValue(String handle) {
+		if (handle.equals(resolveEmailFieldName())) {
+			return nextRandomId() + "@mosip.net";
+		}
 		String generated = IdRepoUtil.generateSchemaFieldValue(handle);
 		if (generated == null || generated.isBlank()) {
 			return nextRandomId();
@@ -62,7 +65,7 @@ public class IdRepoArrayHandle {
 
 	/**
 	 * Replaces array-handle {@code value} fields with a value from that field's IdSchema validator.
-	 * String handles (email/phone) are left to {@code $EMAILVALUE$} / {@code $PHONENUMBERFORIDENTITY$}.
+	 * Preserves rendered email array values, including invalid values supplied by negative cases.
 	 * Validators that live behind a schema {@code $ref} are resolved by apitest-commons.
 	 */
 	private static void uniquifyArrayHandleValues(JSONObject identity) {
@@ -71,9 +74,11 @@ public class IdRepoArrayHandle {
 			return;
 		}
 		JSONArray selectedHandles = identity.getJSONArray("selectedHandles");
+		String emailFieldName = resolveEmailFieldName();
 		for (int i = 0; i < selectedHandles.length(); i++) {
 			String handle = selectedHandles.optString(i, null);
-			if (handle == null || !identity.has(handle) || !(identity.get(handle) instanceof JSONArray)) {
+			if (handle == null || handle.equals(emailFieldName)
+					|| !identity.has(handle) || !(identity.get(handle) instanceof JSONArray)) {
 				continue;
 			}
 			JSONArray handleArray = identity.getJSONArray(handle);
@@ -642,6 +647,7 @@ public class IdRepoArrayHandle {
 				|| testCaseName.contains("_withupdatetags")
 				|| testCaseName.contains("_withremovedtaggedattribute")
 				|| testCaseName.contains("_withinvaliddemofield")
+				|| testCaseName.contains("_withArrayOfStringNotInSchema")
 				|| testCaseName.contains("_withalldemofieldsremoved")
 				|| testCaseName.contains("_withfunctionalIds")
 				|| testCaseName.contains("_withusedhandlevalue")
@@ -822,9 +828,9 @@ public class IdRepoArrayHandle {
 	/** Appends two more untagged values to an existing array-typed handle, to prove tags don't gate status. */
 	private static void applyAppendUntaggedValues(JSONArray handleArray, String handle) {
 		JSONObject second = new JSONObject();
-		second.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+		second.put("value", schemaHandleValue(handle));
 		JSONObject third = new JSONObject();
-		third.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+		third.put("value", schemaHandleValue(handle));
 		handleArray.put(second);
 		handleArray.put(third);
 	}
@@ -916,7 +922,7 @@ public class IdRepoArrayHandle {
 		// Positive: five entries, only the first tagged; values generated to satisfy the handle validator.
 		for (int j = 0; j < 4; j++) {
 			JSONObject obj = new JSONObject();
-			obj.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+			obj.put("value", schemaHandleValue(handle));
 			if (j < 1) {
 				obj.put("tags", new JSONArray().put("handle"));
 			}
@@ -1047,10 +1053,10 @@ public class IdRepoArrayHandle {
 		if (handleArray.length() < 3) {
 			// Positive: appended values generated to satisfy the handle's own validator.
 			JSONObject secondValue = new JSONObject();
-			secondValue.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+			secondValue.put("value", schemaHandleValue(handle));
 			secondValue.put("tags", new JSONArray().put("handle"));
 			JSONObject thirdValue = new JSONObject();
-			thirdValue.put("value", IdRepoUtil.generateSchemaFieldValue(handle));
+			thirdValue.put("value", schemaHandleValue(handle));
 			handleArray.put(secondValue);
 			handleArray.put(thirdValue);
 		}
