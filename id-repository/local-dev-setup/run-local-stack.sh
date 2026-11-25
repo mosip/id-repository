@@ -335,7 +335,7 @@ cmd_up() {
   info "Starting Docker deps (docker compose up -d --remove-orphans)..."
   compose up -d --remove-orphans
   compose ps
-  wait_for_deps_healthy || warn "Continuing despite unhealthy deps — host app may fail at startup."
+  wait_for_deps_healthy || die "Deps not healthy after timeout — fix Docker services before starting the host app (try: $0 status | $0 logs)."
   log ""
   info "Deps ready. Start ID-Repository on the host:"
   info "  ./run-idrepo-local.sh          # rebuild + start (Mac/Linux/Git Bash)"
@@ -358,7 +358,7 @@ cmd_restart() {
     keymanager-service
 
   compose ps
-  wait_for_deps_healthy || warn "Continuing despite unhealthy deps — host app may fail at startup."
+  wait_for_deps_healthy || die "Deps not healthy after timeout — fix Docker services before restarting the host app (try: $0 status | $0 logs)."
   info "Deps ready. Restart the host app: ./run-idrepo-local.sh"
   info "Health: curl http://localhost:8090/actuator/health"
 }

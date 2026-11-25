@@ -160,4 +160,22 @@ public class IdRepoServiceHelperHandleTest {
 
 		assertTrue(helper.findMissingHandleArrayItemValuePaths(request).isEmpty());
 	}
+
+	@Test
+	public void testToVerifiedAttributeNamesFlattensV2Metadata() throws Exception {
+		ObjectMapper mapper = new ObjectMapper();
+		// v1: claim-name strings pass through
+		assertEquals(List.of("fullName", "email"),
+				IdRepoServiceHelper.toVerifiedAttributeNames(
+						mapper.readTree("[\"fullName\",\"email\"]")));
+		// v2: VerificationMetadata.claims → flat List<String> for ResponseDTO
+		assertEquals(List.of("fullName", "dateOfBirth", "email"),
+				IdRepoServiceHelper.toVerifiedAttributeNames(mapper.readTree("""
+						[
+						  {"trustFramework":"mosip","claims":["fullName","dateOfBirth"],"metadata":{}},
+						  {"trustFramework":"mosip","claims":["email"],"metadata":{}}
+						]
+						""")));
+		assertEquals(null, IdRepoServiceHelper.toVerifiedAttributeNames(null));
+	}
 }

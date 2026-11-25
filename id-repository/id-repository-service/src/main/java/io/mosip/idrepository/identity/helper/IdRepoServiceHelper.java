@@ -266,18 +266,6 @@ public class IdRepoServiceHelper {
     }
 
     /**
-     * Finds object entries of schema handle array fields that omit a non-blank {@code value}.
-     * <p>
-     * Schema {@code items.required=["value"]} is not always enforced by the ID-object
-     * validator for array handles, so create/update must reject these paths explicitly
-     * (IDR-IDC-001 / {@code identity/{field}/{index}/value}).
-     * </p>
-     *
-     * @param requestMap request body map that contains {@code identity}
-     * @return missing-value paths in schema order; empty when every object item has a value
-     * @throws IdRepoAppException when the schema for the identity version cannot be loaded
-     */
-    /**
      * Flattens stored {@code verifiedAttributes} to claim-name strings for retrieve responses.
      * <p>
      * V1 rows are already claim-name strings. V2 rows are {@code VerificationMetadata} objects;
@@ -307,6 +295,18 @@ public class IdRepoServiceHelper {
         return names;
     }
 
+    /**
+     * Finds object entries of schema handle array fields that omit a non-blank {@code value}.
+     * <p>
+     * Schema {@code items.required=["value"]} is not always enforced by the ID-object
+     * validator for array handles, so create/update must reject these paths explicitly
+     * (IDR-IDC-001 / {@code identity/{field}/{index}/value}).
+     * </p>
+     *
+     * @param requestMap request body map that contains {@code identity}
+     * @return missing-value paths in schema order; empty when every object item has a value
+     * @throws IdRepoAppException when the schema for the identity version cannot be loaded
+     */
     @SuppressWarnings("unchecked")
     public List<String> findMissingHandleArrayItemValuePaths(Map<String, Object> requestMap)
             throws IdRepoAppException {
