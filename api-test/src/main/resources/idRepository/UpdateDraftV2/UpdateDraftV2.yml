@@ -45,41 +45,42 @@ UpdateDraftV2:
     "status": "DRAFTED"
 }'
 
-  IdRepository_UpdateDraftV2_WithVerifiedAttributes_Smoke_Pos:
-      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
-      description: Verify that a draft is updated when verifiedAttributes are passed with the identity data
-      uniqueIdentifier: TC_IDRepo_UpdateDraftV2_03
-      role: idrepo
-      restMethod: patch
-      outputTemplate: idRepository/UpdateDraft/updateDraftResult
-      input: '{
-  "id": "mosip.id.create",
-  "registrationId": "$RIDV2NEWEXPLICIT$",
-  "dateOfBirth": "1992/04/15",
-  "postalCode": "14022",
-  "email": "$EMAILVALUE$",
-  "phone": "$PHONENUMBERFORIDENTITY$",
-  "value": "$BIOVALUE$",
-  "category": "individualBiometrics",
-  "version": "v1",
-  "requesttime": "$TIMESTAMP$",
-  "verifiedAttributes": [
-    {
-      "trustFramework": "internal",
-      "verificationProcess": "otp_verified",
-      "claims": ["phone"],
-      "metadata": {
-        "trust_framework": "internal",
-        "verification_process": "otp_verified",
-        "assurance_level": "Home",
-        "time": "2025-07-01T06:10:00.000Z"
-      }
-    }
-  ]
-}'
-      output: '{
-    "status": "DRAFTED"
-}'
+  # verifiedAttributes on draft update is not part of release-1.4.x; re-enable when the feature lands.
+#  IdRepository_UpdateDraftV2_WithVerifiedAttributes_Smoke_Pos:
+#      endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
+#      description: Verify that a draft is updated when verifiedAttributes are passed with the identity data
+#      uniqueIdentifier: TC_IDRepo_UpdateDraftV2_03
+#      role: idrepo
+#      restMethod: patch
+#      outputTemplate: idRepository/UpdateDraft/updateDraftResult
+#      input: '{
+#  "id": "mosip.id.create",
+#  "registrationId": "$RIDV2NEWEXPLICIT$",
+#  "dateOfBirth": "1992/04/15",
+#  "postalCode": "14022",
+#  "email": "$EMAILVALUE$",
+#  "phone": "$PHONENUMBERFORIDENTITY$",
+#  "value": "$BIOVALUE$",
+#  "category": "individualBiometrics",
+#  "version": "v1",
+#  "requesttime": "$TIMESTAMP$",
+#  "verifiedAttributes": [
+#    {
+#      "trustFramework": "internal",
+#      "verificationProcess": "otp_verified",
+#      "claims": ["phone"],
+#      "metadata": {
+#        "trust_framework": "internal",
+#        "verification_process": "otp_verified",
+#        "assurance_level": "Home",
+#        "time": "2025-07-01T06:10:00.000Z"
+#      }
+#    }
+#  ]
+#}'
+#      output: '{
+#    "status": "DRAFTED"
+#}'
 
   IdRepository_UpdateDraftV2_LostPacketDraft_Smoke_Pos:
       endPoint: /idrepository/v1/identity/draft/v2/update/{registrationId}
