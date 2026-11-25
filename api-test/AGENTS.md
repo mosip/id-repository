@@ -29,4 +29,4 @@ api-test/
 - Handles: `string` vs `array` → check `instanceof JSONArray` first.
 - V2 array: `AddIdentityV2ArrayHandle.yml` before `UpdateIdentityV2ArrayHandle`.
 - Draft V2: `$RIDV2NEWEXPLICIT$` before `$RIDV2NEW$` in `IdRepoUtil.inputStringKeyWordHandeler`.
-- Shade excludes local `SlackChannelIntegration` (+ `GlobalMethods`). No secrets in git.
+- Slack skip + `https?://` endpoint report come from `apitest-commons` (≥ #2029 / develop). No secrets in git.
