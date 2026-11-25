@@ -394,6 +394,23 @@ public class IdRepoArrayHandle {
 			return jsonObj.toString();
 		}
 
+		// MultipleEmail / tagged-email updates keep the email array but drop selectedHandles
+		// (partial update). Apply those rewrites here — the per-handle loop below never runs
+		// without selectedHandles, so the $ID:..._EMAIL$ placeholder would be sent as-is and
+		// collide with IDR-IDC-014.
+		if (mutatesEmailArray(testCaseName)) {
+			if (identity.has(emailFieldName) && identity.get(emailFieldName) instanceof JSONArray) {
+				JSONArray handleArray = identity.getJSONArray(emailFieldName);
+				JSONArray selectedHandles = identity.has("selectedHandles")
+						&& identity.get("selectedHandles") instanceof JSONArray
+								? identity.getJSONArray("selectedHandles")
+								: new JSONArray().put(emailFieldName);
+				applyUpdateIdentityHandleMutation(testCaseName, identity, selectedHandles, emailFieldName,
+						handleArray, phoneFieldName, 0);
+			}
+			return jsonObj.toString();
+		}
+
 		if (!identity.has("selectedHandles") || !(identity.get("selectedHandles") instanceof JSONArray)) {
 			return jsonObj.toString();
 		}
