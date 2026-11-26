@@ -175,16 +175,6 @@
 										<exclude>META-INF/*.RSA</exclude>
 									</excludes>
 								</filter>
-								<!-- Prefer api-test override: https?:// so local http endpoints show in report -->
-								<filter>
-									<artifact>io.mosip.testrig.apitest.commons:apitest-commons</artifact>
-									<excludes>
-										<exclude>io/mosip/testrig/apirig/utils/GlobalMethods.class</exclude>
-										<!-- Prefer local skip-when-blank Slack override (#1749 C6). -->
-										<exclude>io/mosip/testrig/apirig/utils/SlackChannelIntegration.class</exclude>
-										<exclude>io/mosip/testrig/apirig/utils/SlackChannelIntegration$*.class</exclude>
-									</excludes>
-								</filter>
 							</filters>
 						</configuration>
 					</execution>

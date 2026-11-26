@@ -71,7 +71,9 @@ public class IdRepoArrayHandle {
 			if (handle == null || !identity.has(handle) || !(identity.get(handle) instanceof JSONArray)) {
 				continue;
 			}
-			if (handle.equals(emailField)) {
+			// Keep AddIdentity / $EMAILVALUE$ (and YAML negatives). Only non-email array handles
+			// are uniquified here; email rewrites happen only in named scenario mutations.
+			if (handle.equalsIgnoreCase(emailField)) {
 				continue;
 			}
 			JSONArray handleArray = identity.getJSONArray(handle);
