@@ -148,7 +148,7 @@ Give every UPDATE draft / LOST stamp its own `AddIdentity_For_DraftV2*Scen` iden
 
 ### LOST drafts: update/stamp ordering
 - **One identity update before stamping.** A second `updateDraftV2` that changes identity while `uinHash` is null is rejected with `IDR-IDC-015` (deliberate guard in `updateDemographicData`).
-- **Stamp before any update currently NPEs.** `uindata` on a LOST draft with null `uinData` fails in `backfillDraftIdentityFromLiveUin` → `IDR-IDC-004`, and the stamp rolls back. `UpdateDraftUinData_12` expects `DRAFTED` on purpose to flag it; `PublishDraftV2_12` expects `ACTIVATED` and fails with `IDR-IDC-015` until the same fix lands.
+- **Stamp before any update is rejected.** `uindata` on a LOST draft that has no identity data yet → `IDR-IDC-022` ("Update draft must be called before stamping UIN"), so the draft stays unstamped and its publish → `IDR-IDC-015`. `UpdateDraftUinData_12` and `PublishDraftV2_12` assert these two codes.
 - **Publish needs a stamped UIN** → otherwise `IDR-IDC-015`.
 - **Update with no `identity` passes validation.** On a draft with identity data it is a no-op merge; as a LOST draft's first update it stores the identity as JSON `null`.
 - **Draft RID format is only validated on create** (`IDR-IDC-002`). Update, discard, `uindata`, get and publish treat a malformed RID as not found (`IDR-IDC-007`) — same path as a `NoDraftExists` test, so don't add format tests for them.
