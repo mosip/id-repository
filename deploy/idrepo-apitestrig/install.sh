@@ -7,7 +7,7 @@ if [ $# -ge 1 ] ; then
 fi
 
 NS=idrepo
-CHART_VERSION=1.3.2
+CHART_VERSION=1.7.0
 COPY_UTIL=../copy_cm_func.sh
 
 echo Create $NS namespace
