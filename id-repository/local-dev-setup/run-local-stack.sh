@@ -175,7 +175,7 @@ check_docker() {
 compose() {
   if [[ "${LOW_MEM:-}" == "1" || "${LOW_MEM:-}" == "true" ]]; then
     set -- -f docker-compose.yml -f docker-compose.low-mem.yml "$@"
-    info "LOW_MEM=1 — using docker-compose.low-mem.yml (~3GB container budget)" >&2
+    info "LOW_MEM=1 — using docker-compose.low-mem.yml (~3GB container budget)"
   fi
   (cd "$COMPOSE_DIR" && docker compose "$@")
 }
@@ -308,28 +308,11 @@ ensure_jar() {
 # ---------------------------------------------------------------------------
 # Docker lifecycle
 # ---------------------------------------------------------------------------
-wait_for_dependency_health() {
-  local service="$1" container_id
-  local deadline=$((SECONDS + 300))
-  info "Waiting for $service to become healthy..."
-  while (( SECONDS < deadline )); do
-    container_id="$(compose ps -q "$service")"
-    if [[ -n "$container_id" ]] &&
-       [[ "$(docker inspect --format '{{.State.Health.Status}}' "$container_id" 2>/dev/null)" == "healthy" ]]; then
-      return
-    fi
-    sleep 2
-  done
-  die "$service did not become healthy within 300 seconds. Try: $0 logs $service"
-}
-
 cmd_up() {
   check_docker
   cmd_prep
   info "Starting Docker deps (docker compose up -d --remove-orphans)..."
   compose up -d --remove-orphans
-  wait_for_dependency_health mock-service
-  wait_for_dependency_health keymanager-service
   compose ps
   log ""
   info "Deps ready. Start ID-Repository on the host:"
@@ -352,29 +335,9 @@ cmd_restart() {
     mock-service minio minio-init \
     keymanager-service
 
-  wait_for_dependency_health mock-service
-  wait_for_dependency_health keymanager-service
   compose ps
   info "Deps ready. Restart the host app: ./run-idrepo-local.sh"
   info "Health: curl http://localhost:8090/actuator/health"
-}
-
-cmd_idschema() {
-  local variant="${1:-}"
-  local schema_dir="$COMPOSE_DIR/wiremock/__files"
-
-  case "$variant" in
-    "") info "Available ID schemas: default, email-handle, diff-handle"; return ;;
-    default|email-handle|diff-handle) ;;
-    *) die "Unknown ID schema '$variant'. Choose default, email-handle, or diff-handle." ;;
-  esac
-
-  check_docker
-  cp "$schema_dir/idschema-latest-$variant.json" \
-    "$schema_dir/idschema-latest-active.json"
-  compose up -d --force-recreate --no-deps mock-service
-  wait_for_dependency_health mock-service
-  info "ID schema '$variant' is active. Restart the host app to reload the schema."
 }
 
 cmd_run() {
@@ -453,7 +416,6 @@ Commands:
   build       mvn package id-repository-service (-DskipTests)
   status      docker compose ps -a
   smoke       HTTP health / UIN / idschema checks (needs host app running)
-  idschema [default|email-handle|diff-handle]  Switch the local WireMock ID schema
   logs        Follow logs (default: keymanager-service)
   help        Show this help
 
@@ -494,7 +456,6 @@ main() {
     build)        cmd_build ;;
     status|ps)    cmd_status ;;
     smoke|check)  cmd_smoke ;;
-    idschema)     cmd_idschema "$@" ;;
     logs)         cmd_logs "${1:-}" ;;
     help|-h|--help) cmd_help ;;
     *)

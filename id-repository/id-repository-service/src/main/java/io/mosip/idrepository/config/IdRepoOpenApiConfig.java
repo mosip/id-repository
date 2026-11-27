@@ -201,8 +201,7 @@ public class IdRepoOpenApiConfig implements WebMvcConfigurer {
 				.group("vid")
 				.displayName("Id Repo VID Service")
 				.packagesToScan("io.mosip.idrepository.vid.controller")
-				.pathsToMatch(VID_PATH_PREFIX + "/vid", VID_PATH_PREFIX + "/vid/**",
-						VID_PATH_PREFIX + "/draft/vid")
+				.pathsToMatch(VID_PATH_PREFIX + "/vid", VID_PATH_PREFIX + "/vid/**")
 				.addOpenApiCustomizer(openApi -> applyAuthorization(openApi)
 						.info(serviceInfo("MOSIP ID-Repository VID Service",
 						"VID lifecycle APIs")))
